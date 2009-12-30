@@ -1,0 +1,6 @@
+Revision history for Perl extension Math::Vector::Real.
+
+0.01  Wed Dec 30 19:47:00 2009
+	- original version; created by h2xs 1.23 with options
+		-AXn Math::Vector::Real
+
