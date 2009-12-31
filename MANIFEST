@@ -5,4 +5,4 @@ README
 t/Math-Vector-Real.t
 t/pods.t
 lib/Math/Vector/Real.pm
-example/dist_to_line.pl
+examples/dist_to_line.pl
