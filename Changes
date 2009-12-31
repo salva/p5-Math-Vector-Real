@@ -4,6 +4,7 @@ Revision history for Perl extension Math::Vector::Real.
         - clean up Makefile.PL
 	- remove 5.10 requirement
 	- doc minor improvements
+	- add example
 
 0.01  Wed Dec 30 19:47:00 2009
 	- original version; created by h2xs 1.23 with options
