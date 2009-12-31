@@ -205,27 +205,26 @@ Math::Vector::Real - Real vector arithmetic in Perl
 
   my $v = V(1.1, 2.0, 3.1, -4.0, -12.0);
   my $u = V(2.0, 0.0, 0.0,  1.0,   0.3);
+
   printf "abs(%s) = %d\n", $v, abs($b);
-
   my $dot = $u * $v;
-
   my $sub = $u - $v;
-
   # etc...
 
 =head1 DESCRIPTION
 
 A simple pure perl module to manipulate vectors of any dimension.
 
-The function C<V> that is automatically exported by the module allows
-to create new vectors:
+The function C<V>, always exported by the module, allows to create new
+vectors:
 
   my $v = V(0, 1, 3, -1);
 
-Vectors are represented as blessed array references. You are allowed
-to manipulate the arrays as far as only real numbers are inserted
-(well, actually, integers are also allowed, from a mathematical
-point of view, integers are also reals).
+Vectors are represented as blessed array references. It is allowed to
+manipulate the arrays directly as far as only real numbers are
+inserted (well, actually, integers are also allowed because from a
+mathematical point of view, integers are a subset of the real
+numbers).
 
 Example:
 
@@ -240,9 +239,9 @@ Example:
 Vectors can be used in mathematical expressions:
 
   my $u = V(3, 3, 0);
-  $p = $u * $v; # dot product
+  $p = $u * $v;       # dot product
   $f = 1.4 * $u + $v; # scalar product and vector addition
-  $c = $u x $v; # cross product, only defined for 3D vectors
+  $c = $u x $v;       # cross product, only defined for 3D vectors
   # etc.
 
 The currently supported operations are:
@@ -256,10 +255,10 @@ The currently supported operations are:
   abs (returns the norm)
   atan2 (returns the angle between two vectors)
 
-That AFAIK, are the operations that can be applied to vectors.
+That, AFAIK, are all the operations that can be applied to vectors.
 
-When an array is used in an operation involving a vector, it is
-automatically upgraded to a vector. For instance:
+When an array reference is used in an operation involving a vector, it
+is automatically upgraded to a vector. For instance:
 
   my $v = V(1, 2);
   $v += [0, 2];
@@ -269,8 +268,8 @@ automatically upgraded to a vector. For instance:
 L<Math::GSL::Vector>, L<PDL>.
 
 There are other vector manipulation packages in CPAN (L<Math::Vec>,
-L<Math::RealVec>, L<Math::Vector>), but most of them are limited to
-3D.
+L<Math::VectorReal>, L<Math::Vector>), but they can only handle 3
+dimensional vectors.
 
 =head1 AUTHOR
 
