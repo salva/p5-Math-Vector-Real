@@ -271,13 +271,10 @@ There are other vector manipulation packages in CPAN (L<Math::Vec>,
 L<Math::VectorReal>, L<Math::Vector>), but they can only handle 3
 dimensional vectors.
 
-=head1 AUTHOR
-
-Salvador Fandiño, E<lt>sfandino@Eyahoo.com<gt>
-
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by Salvador Fandiño
+Copyright (C) 2009, 2010 by Salvador FandiE<ntilde>o
+(sfandino@yahoo.com)
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
