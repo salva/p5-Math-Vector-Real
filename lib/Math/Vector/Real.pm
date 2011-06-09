@@ -34,7 +34,35 @@ overload->import(%ol);
 
 sub V { bless [@_] }
 
-sub new { shift; bless [@_] }
+sub new {
+    my $class = shift;
+    bless [@_], $class
+}
+
+sub zero {
+    my ($class, $dim) = @_;
+    $dim >= 0 or croak "negative dimension";
+    bless [(0) x $dim], $class
+}
+
+sub is_zero { grep $_, @$_[0] }
+
+sub axis_versor {
+    my ($class, $dim, $ix);
+    if (ref $_[0]) {
+        my ($self, $ix) = @_;
+        $class = ref $self;
+        $dim = @$self;
+    }
+    else {
+        ($class, $dim, $ix) = @_;
+        $dim >= 0 or croak "negative dimension";
+    }
+    ($ix >= 0 and $ix < $dim) or croak "axis index out of range";
+    my $self = [(0) x $dim];
+    $self->[$ix] = 1;
+    bless $self, $class
+}
 
 sub _caller_op {
     my $level = (shift||1) + 1;
@@ -179,7 +207,6 @@ sub _upgrade {
 	    $dim = $d;
 	}
 	UNIVERSAL::isa($_, __PACKAGE__) ? $_ : clone($_);
-	    
     } @_;
 }
 
@@ -190,6 +217,37 @@ sub atan2 {
     my $u0 = $v0 / $a0;
     my $p = $v1 * $u0;
     atan2(&abs($v1 - $p * $u0), $p);
+}
+
+sub versor {
+    my $self = shift;
+    my $f = 0;
+    $f += $_ * $_ for @{$_[0]};
+    $f == 0 and croak "Illegal division by zero";
+    $f = 1/sqrt $f;
+    bless [map $f * $_, @$self]
+}
+
+sub wrap {
+    my ($self, $w) = @_;
+    require POSIX;
+    my @r;
+    if (ref $w) {
+        &_check_dim;
+        for (0..$#$self) {
+            my $s1 = $self->[$_];
+            my $w1 = $w->[$_];
+            push @r, $s1 - $w1 * floor($s1/$w1)
+        }
+    }
+    else {
+        my $iw = 1/$w;
+        for (0..$#$self) {
+            my $s1 = $self->[$_];
+            push @r, $s1 - $w * floor($s1 * $iw);
+        }
+    }
+    bless \@r;
 }
 
 1;
@@ -263,7 +321,52 @@ is automatically upgraded to a vector. For instance:
   my $v = V(1, 2);
   $v += [0, 2];
 
+=head2 Extra methods
+
+Besides the common mathematical operations described above, the
+following methods are available from the package.
+
+Note that all these methods are non destructive returning new objects
+with the result.
+
+=over 4
+
+=item $v = Math::Vector::Real->new(@components)
+
+Equivalent to C<V(@components)>.
+
+=item $zero = Math::Vector::Real->zero($dim)
+
+Returns the zero vector of the given dimension.
+
+=item $u = Math::Vector::Real->axis_versor($dim, $ix)
+
+Returns a unitary vector of the given dimension parallel to the axis
+with index C<$ix> (0-based).
+
+For instance:
+
+  Math::Vector::Real->axis_versor(5, 3); # V(0, 0, 0, 1, 0)
+  Math::Vector::Real->axis_versor(2, 0); # V(1, 0)
+
+=item $u = $v->versor
+
+Returns the versor for the given vector.
+
+=item $wrapped = $v->wrap($w)
+
+If C<$w> is a vector, returns the result of wrapping the given vector
+in the box defined by C<$w>.
+
+If C<$w> is a scalar, the hypercube of size C<$w> is used as the
+wrapping box.
+
+=back
+
 =head1 SEE ALSO
+
+L<Math::Vector::Real::Random> extends this module with random vector
+generation methods.
 
 L<Math::GSL::Vector>, L<PDL>.
 
@@ -273,7 +376,7 @@ dimensional vectors.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009, 2010 by Salvador FandiE<ntilde>o
+Copyright (C) 2009, 2011 by Salvador FandiE<ntilde>o
 (sfandino@yahoo.com)
 
 This library is free software; you can redistribute it and/or modify
