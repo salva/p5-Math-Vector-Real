@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use strict;
 use warnings;
@@ -47,6 +47,11 @@ sub zero {
 
 sub is_zero { grep $_, @$_[0] }
 
+sub cube {
+    my ($class, $dim, $size) = @_;
+    bless [($size) x $dim], $class;
+}
+
 sub axis_versor {
     my ($class, $dim, $ix);
     if (ref $_[0]) {
@@ -81,6 +86,12 @@ sub _check_dim {
 }
 
 sub clone { bless [@{$_[0]}] }
+
+sub set {
+    &_check_dim;
+    my ($v0, $v1) = @_;
+    $v0->[$_] = $v1->[$_] for 0..$#$v1;
+}
 
 sub add {
     &_check_dim;
@@ -195,6 +206,34 @@ sub abs {
     sqrt $acu;
 }
 
+sub abs2 {
+    my $acu = 0;
+    $acu += $_ * $_ for @{$_[0]};
+    $acu;
+}
+
+sub dist {
+    &_check_dim;
+    my ($v0, $v1) = @_;
+    my $d2 = 0;
+    for (0..$#$v0) {
+	my $d = $v0->[$_] - $v1->[$_];
+	$d2 += $d * $d;
+    }
+    sqrt($d2);
+}
+
+sub dist2 {
+    &_check_dim;
+    my ($v0, $v1) = @_;
+    my $d2 = 0;
+    for (0..$#$v0) {
+	my $d = $v0->[$_] - $v1->[$_];
+	$d2 += $d * $d;
+    }
+    $d2;
+}
+
 sub _upgrade {
     my $dim;
     map {
@@ -229,25 +268,32 @@ sub versor {
 }
 
 sub wrap {
-    my ($self, $w) = @_;
+    my ($self, $v) = @_;
+    &_check_dim;
     require POSIX;
-    my @r;
-    if (ref $w) {
-        &_check_dim;
-        for (0..$#$self) {
-            my $s1 = $self->[$_];
-            my $w1 = $w->[$_];
-            push @r, $s1 - $w1 * floor($s1/$w1)
-        }
+
+    bless [map  { my $s = $self->[$_];
+		  my $c = $v->[$_];
+		  $s1 - $w1 * floor($s1/$w1) } (0..$#$self)];
+}
+
+sub max {
+    my $max = 0;
+    for (@{shift()}) {
+	my $abs = CORE::abs($_);
+	$abs > $max and $max = $abs;
     }
-    else {
-        my $iw = 1/$w;
-        for (0..$#$self) {
-            my $s1 = $self->[$_];
-            push @r, $s1 - $w * floor($s1 * $iw);
-        }
+    $max
+}
+
+sub min {
+    my $self = shift; 
+    my $min = CORE::abs($self->[0]);
+    for (@$self) {
+	my $abs = CORE::abs($_);
+	$abs < $min and $min = $abs;
     }
-    bless \@r;
+    $min
 }
 
 1;
@@ -339,6 +385,11 @@ Equivalent to C<V(@components)>.
 
 Returns the zero vector of the given dimension.
 
+=item $v = Math::Vector::Real->cube($dim, $size)
+
+Returns a vector of the given dimension with all its components set to
+C<$size>.
+
 =item $u = Math::Vector::Real->axis_versor($dim, $ix)
 
 Returns a unitary vector of the given dimension parallel to the axis
@@ -353,13 +404,37 @@ For instance:
 
 Returns the versor for the given vector.
 
-=item $wrapped = $v->wrap($w)
+=item $wrapped = $w->wrap($v)
 
-If C<$w> is a vector, returns the result of wrapping the given vector
-in the box defined by C<$w>.
+Returns the result of wrapping the given vector in the box defined by
+C<$w>.
 
-If C<$w> is a scalar, the hypercube of size C<$w> is used as the
-wrapping box.
+=item $max = $v->max
+
+Returns the maximum of the absolute values of the vector components.
+
+=item $min = $v->min
+
+Returns the minimum of the absolute values of the vector components.
+
+=item $d2 = $b->abs2
+
+Returns the norm of the vector squared.
+
+=item $d = $v->dist($u)
+
+Returns the distance between the two vectors.
+
+
+=item $d = $v->dist2($u)
+
+Returns the distance between the two vectors squared.
+
+=item $d = $v->set($u)
+
+Equivalent to C<$v = $u> but without allocating a new object.
+
+Note that this method is destructive.
 
 =back
 

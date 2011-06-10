@@ -1,5 +1,9 @@
 Revision history for Perl extension Math::Vector::Real.
 
+0.04
+	- add cube constructor and min, max, dist, dist2 and abs2 methods
+	- wrap method modified
+
 0.03  Jun 9, 2011
         - add methods axis_versor, versor, zero, is_zero and wrap
 	- some doc corrections and improvements
