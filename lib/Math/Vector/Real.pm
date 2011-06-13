@@ -261,7 +261,7 @@ sub atan2 {
 sub versor {
     my $self = shift;
     my $f = 0;
-    $f += $_ * $_ for @{$_[0]};
+    $f += $_ * $_ for @$self;
     $f == 0 and croak "Illegal division by zero";
     $f = 1/sqrt $f;
     bless [map $f * $_, @$self]
@@ -274,7 +274,7 @@ sub wrap {
 
     bless [map  { my $s = $self->[$_];
 		  my $c = $v->[$_];
-		  $s1 - $w1 * floor($s1/$w1) } (0..$#$self)];
+		  $c - $s * floor($c/$s) } (0..$#$self)];
 }
 
 sub max {
@@ -295,6 +295,42 @@ sub min {
     }
     $min
 }
+
+sub box {
+    shift;
+    return unless @_;
+    my $min = shift->clone;
+    my $max = $min->clone;
+    my $dim = @$min - 1;
+    for (@_) {
+        for my $ix (0..$dim) {
+            my $c = $_->[$ix];
+            if ($max->[$ix] < $c) {
+                $max->[$ix] = $c;
+            }
+            elsif ($min->[$ix] > $c) {
+                $min->[$ix] = $c
+            }
+        }
+    }
+    ($min, $max);
+}
+
+sub max_component_index {
+    my $self = shift;
+    return unless @$self;
+    my $max = $self->[0];
+    my $max_ix = 0;
+    for my $ix (1..$#$self) {
+        if ($self->[$ix] > $max) {
+            $max_ix = $ix;
+            $max = $self->[$ix];
+        }
+    }
+    $max_ix;
+}
+
+sub normal2d { bless [$_[0][1], -$_[0][0]] }
 
 1;
 __END__
@@ -430,11 +466,20 @@ Returns the distance between the two vectors.
 
 Returns the distance between the two vectors squared.
 
+=item ($bottom, $top) = Math::Vector::Real->box($v0, $v1, $v2, ...)
+
+Returns the two corners of a hyper-box containing all the given
+vectors.
+
 =item $d = $v->set($u)
 
 Equivalent to C<$v = $u> but without allocating a new object.
 
 Note that this method is destructive.
+
+=item $d = $v->max_component_index
+
+Return the index of the vector component with the maximum size
 
 =back
 
