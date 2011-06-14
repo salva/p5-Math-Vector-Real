@@ -330,7 +330,50 @@ sub max_component_index {
     $max_ix;
 }
 
-sub normal2d { bless [$_[0][1], -$_[0][0]] }
+sub decompose {
+    my ($u, $v) = @_;
+    my $p = $u * ($u * $v)/abs2($u);
+    my $n = $v - $p;
+    wantarray ? ($p, $n) : $n;
+}
+
+sub canonical_base {
+    my ($class, $dim) = @_;
+    my @base = map { bless [(0) x $dim], $class } 1..$dim;
+    $base[$_] = 1 for 0..$#base;
+    return @base;
+}
+
+sub normal_base {
+    my $v = shift;
+    my $dim = @$v;
+    if ($dim == 2) {
+        my $u = $v->versor;
+        @$u = ($u->[1], -$u->[0]);
+        return $u;
+    }
+    else {
+        my @base = Math::Vector::Real->canonical_base($dim);
+        $_ = $v->decompose($_) for @base;
+        for my $i (0..$dim - 2) {
+            my $max = abs2($base[$i]);
+            if ($max < 0.3) {
+                for my $j ($i+1..$#base) {
+                    my $d2 = abs2($base[$j]);
+                    if ($d2 > $max) {
+                        @base[$i, $j] = @base[$j, $i];
+                        last unless $d2 < 0.3;
+                        $max = $d2;
+                    }
+                }
+            }
+            my $versor = $base[$i] = $i->versor;
+            $_ = $versor->decompose($_) for @base[$i+1..$#base];
+        }
+        pop @base;
+        wantarray ? @base : $base[0];
+    }
+}
 
 1;
 __END__
@@ -436,6 +479,11 @@ For instance:
   Math::Vector::Real->axis_versor(5, 3); # V(0, 0, 0, 1, 0)
   Math::Vector::Real->axis_versor(2, 0); # V(1, 0)
 
+=item @b = Math::Vector::Real->canonical_base($dim)
+
+Returns the canonical base for the vector space of the given
+dimension.
+
 =item $u = $v->versor
 
 Returns the versor for the given vector.
@@ -461,7 +509,6 @@ Returns the norm of the vector squared.
 
 Returns the distance between the two vectors.
 
-
 =item $d = $v->dist2($u)
 
 Returns the distance between the two vectors squared.
@@ -479,7 +526,21 @@ Note that this method is destructive.
 
 =item $d = $v->max_component_index
 
-Return the index of the vector component with the maximum size
+Return the index of the vector component with the maximum size.
+
+=item ($p, $n) = $v->decompose($u)
+
+Decompose the given vector C<$u> in two vectors: one parallel to C<$v>
+and another normal.
+
+In scalar context returns the normal vector.
+
+=item @b = $v->normal_base
+
+Returns a set of vectors forming an ortonormal base for the hyperplane
+normal to $v.
+
+In scalar context returns just some random normal vector.
 
 =back
 
