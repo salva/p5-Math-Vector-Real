@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use strict;
 use warnings;
@@ -37,6 +37,11 @@ sub V { bless [@_] }
 sub new {
     my $class = shift;
     bless [@_], $class
+}
+
+sub new_ref {
+    my $class = shift;
+    bless [@{shift()}], $class;
 }
 
 sub zero {
