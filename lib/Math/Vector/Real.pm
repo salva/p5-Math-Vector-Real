@@ -1,10 +1,11 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use strict;
 use warnings;
 use Carp;
+use POSIX ();
 
 use Exporter qw(import);
 our @EXPORT = qw(V);
@@ -279,7 +280,7 @@ sub wrap {
 
     bless [map  { my $s = $self->[$_];
 		  my $c = $v->[$_];
-		  $c - $s * floor($c/$s) } (0..$#$self)];
+		  $c - $s * POSIX::floor($c/$s) } (0..$#$self)];
 }
 
 sub max {
