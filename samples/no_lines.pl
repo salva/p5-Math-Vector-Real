@@ -1,5 +1,9 @@
 #!/usr/bin/perl
 
+# Generate unaligned random points in 2D space
+#
+# See: http://stackoverflow.com/q/6825772/124951
+
 use strict;
 use warnings;
 use 5.010;
