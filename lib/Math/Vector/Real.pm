@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.07';
+our $VERSION = '0.08';
 
 use strict;
 use warnings;
@@ -307,8 +307,8 @@ sub min {
 sub box {
     shift;
     return unless @_;
-    my $min = shift->clone;
-    my $max = $min->clone;
+    my $min = clone(shift);
+    my $max = clone($min);
     my $dim = @$min - 1;
     for (@_) {
         for my $ix (0..$dim) {
@@ -348,39 +348,48 @@ sub decompose {
 sub canonical_base {
     my ($class, $dim) = @_;
     my @base = map { bless [(0) x $dim], $class } 1..$dim;
-    $base[$_] = 1 for 0..$#base;
+    $base[$_][$_] = 1 for 0..$#base;
     return @base;
 }
 
-sub normal_base {
-    my $v = shift;
-    my $dim = @$v;
-    my $u = $v->versor;
-    if ($dim == 2) {
+sub normal_base { __PACKAGE__->complementary_base(@_) }
+
+sub complementary_base {
+    shift;
+    @_ or croak "complementaty_base requires at least one argument in order to determine the dimension";
+    my $dim = @{$_[0]};
+    if ($dim == 2 and @_ == 1) {
+        my $u = versor($_[0]);
         @$u = ($u->[1], -$u->[0]);
         return $u;
     }
-    else {
-        my @base = Math::Vector::Real->canonical_base($dim);
-        $_ = $u->decompose($_) for @base;
-        for my $i (0..$dim - 2) {
-            my $max = abs2($base[$i]);
-            if ($max < 0.3) {
-                for my $j ($i+1..$#base) {
-                    my $d2 = abs2($base[$j]);
-                    if ($d2 > $max) {
-                        @base[$i, $j] = @base[$j, $i];
-                        last unless $d2 < 0.3;
-                        $max = $d2;
-                    }
+
+    my @v = map clone($_), @_;
+    my @base = Math::Vector::Real->canonical_base($dim);
+    for my $i (0..$#v) {
+        my $u = versor($v[$i]);
+        $_ = decompose($u, $_) for @v[$i+1 .. $#v];
+        $_ = decompose($u, $_) for @base;
+    }
+
+    my $last = $#base - @v;
+    return if $last < 0;
+    for my $i (0 .. $last) {
+        my $max = abs2($base[$i]);
+        if ($max < 0.3) {
+            for my $j ($i+1 .. $#base) {
+                my $d2 = abs2($base[$j]);
+                if ($d2 > $max) {
+                    @base[$i, $j] = @base[$j, $i];
+                    last unless $d2 < 0.3;
+                    $max = $d2;
                 }
             }
-            my $versor = $base[$i] = $i->versor;
-            $_ = $versor->decompose($_) for @base[$i+1..$#base];
         }
-        pop @base;
-        wantarray ? @base : $base[0];
+        my $versor = $base[$i] = versor($base[$i]);
+        $_ = decompose($versor, $_) for @base[$i+1..$#base];
     }
+    wantarray ? @base[0..$last] : $base[0];
 }
 
 1;
@@ -569,12 +578,26 @@ and another normal.
 
 In scalar context returns the normal vector.
 
+=item @b = Math::Vector::Real->complementary_base(@v)
+
+Returns a base for the subspace complementary to the one defined by
+the base @v.
+
+The vectors on @v must be linearly independent. Otherwise a division
+by zero error may pop up or probably due to rounding errors, just a
+wrong result may be generated.
+
 =item @b = $v->normal_base
 
 Returns a set of vectors forming an ortonormal base for the hyperplane
 normal to $v.
 
-In scalar context returns just some normal vector.
+In scalar context returns just some unitary vector normal to $v.
+
+Note that this two expressions are equivalent:
+
+  @b = $v->normal_base;
+  @b = Math::Vector::Real->complementary_base($v);
 
 =back
 
@@ -582,11 +605,11 @@ In scalar context returns just some normal vector.
 
 Passing the zero vector to some methods (i.e. C<versor>, C<decompose>,
 C<normal_base>, etc.) is not acceptable, in those cases the module
-will croak with and "division by zero" error.
+will croak with a "division by zero" error.
 
 C<atan2> is an exceptional case that will return 0 when any of its
-arguments is the zero vector for consistency with the C<atan2> builtin
-operating over real numbers.
+arguments is the zero vector (for consistency with the C<atan2> builtin
+operating over real numbers).
 
 In any case note in practice, rounding errors almost always cause the
 check for the zero vector to fail resulting in numerical

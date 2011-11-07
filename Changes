@@ -1,5 +1,12 @@
 Revision history for Perl extension Math::Vector::Real.
 
+0.08  Nov 8, 2011
+        - add complementary_base and rewrite normal_base to use it
+        - canonical_base was broken
+        - don't use method syntax to call vector subroutines inside
+          module
+        - doc improvements
+
 0.07  Nov 7, 2011
         - normal_base was broken
         - several doc improvements
