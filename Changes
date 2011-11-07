@@ -1,5 +1,10 @@
 Revision history for Perl extension Math::Vector::Real.
 
+0.07  Nov 7, 2011
+        - normal_base was broken
+        - several doc improvements
+        - minor code cleanups
+
 0.06  Jun 16, 2011
         - import POSIX module
         - add new_ref constructor

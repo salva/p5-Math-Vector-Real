@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.06';
+our $VERSION = '0.07';
 
 use strict;
 use warnings;
@@ -51,7 +51,10 @@ sub zero {
     bless [(0) x $dim], $class
 }
 
-sub is_zero { grep $_, @$_[0] }
+sub is_zero {
+    $_ and return 0 for @$_[0];
+    return 1
+}
 
 sub cube {
     my ($class, $dim, $size) = @_;
@@ -161,7 +164,7 @@ sub div {
 	if ($_[2] or ref $_[1]);
     my ($v, $div) = @_;
     $div == 0 and croak "illegal division by zero";
-    my $i = 1/$div;
+    my $i = 1 / $div;
     bless [map $i * $_, @$v]
 }
 
@@ -261,7 +264,7 @@ sub atan2 {
     return 0 unless $a0;
     my $u0 = $v0 / $a0;
     my $p = $v1 * $u0;
-    atan2(&abs($v1 - $p * $u0), $p);
+    CORE::atan2(&abs($v1 - $p * $u0), $p);
 }
 
 sub versor {
@@ -276,7 +279,6 @@ sub versor {
 sub wrap {
     my ($self, $v) = @_;
     &_check_dim;
-    require POSIX;
 
     bless [map  { my $s = $self->[$_];
 		  my $c = $v->[$_];
@@ -353,14 +355,14 @@ sub canonical_base {
 sub normal_base {
     my $v = shift;
     my $dim = @$v;
+    my $u = $v->versor;
     if ($dim == 2) {
-        my $u = $v->versor;
         @$u = ($u->[1], -$u->[0]);
         return $u;
     }
     else {
         my @base = Math::Vector::Real->canonical_base($dim);
-        $_ = $v->decompose($_) for @base;
+        $_ = $u->decompose($_) for @base;
         for my $i (0..$dim - 2) {
             my $max = abs2($base[$i]);
             if ($max < 0.3) {
@@ -494,10 +496,36 @@ dimension.
 
 Returns the versor for the given vector.
 
+It is equivalent to:
+
+  $u = $v / abs($v);
+
 =item $wrapped = $w->wrap($v)
 
-Returns the result of wrapping the given vector in the box defined by
-C<$w>.
+Returns the result of wrapping the given vector in the box
+(hyper-cube) defined by C<$w>.
+
+Long description:
+
+Given the vector C<W> and the canonical base C<U1, U2, ...Un> such
+that C<W = w1*U1 + w2*U2 +...+ wn*Un>. For every component C<wi> we
+can consider the infinite set of affine hyperplanes perpendicular to
+C<Ui> such that they contain the point C<j * wi * Ui> being C<j> an
+integer number.
+
+The combination of all the hyperplanes defined by every component
+define a grid that divides the space into an infinite set of affine
+hypercubes. Every hypercube can be identified by its lower corner
+indexes C<j1, j2, ..., jN> or its lower corner point C<j1*w1*U1 +
+j2*w2*U2 +...+ jn*wn*Un>.
+
+Given the vector C<V>, wrapping it by C<W> is equivalent to finding
+where it lays relative to the lower corner point of the hypercube
+inside the grid containing it:
+
+  Wrapped = V - (j1*w1*U1 + j2*w2*U2 +...+ jn*wn*Un)
+
+  such that ji*wi <= vi <  (ji+1)*wi
 
 =item $max = $v->max
 
@@ -546,9 +574,33 @@ In scalar context returns the normal vector.
 Returns a set of vectors forming an ortonormal base for the hyperplane
 normal to $v.
 
-In scalar context returns just some random normal vector.
+In scalar context returns just some normal vector.
 
 =back
+
+=head2 Zero vector handling
+
+Passing the zero vector to some methods (i.e. C<versor>, C<decompose>,
+C<normal_base>, etc.) is not acceptable, in those cases the module
+will croak with and "division by zero" error.
+
+C<atan2> is an exceptional case that will return 0 when any of its
+arguments is the zero vector for consistency with the C<atan2> builtin
+operating over real numbers.
+
+In any case note in practice, rounding errors almost always cause the
+check for the zero vector to fail resulting in numerical
+instabilities.
+
+The correct way to handle it is to introduce in your code checks of
+this kind:
+
+  if ($v->abs2 < $epsilon2) {
+    croak "$v is too small";
+  }
+
+Or even better, reorder the operations to minimize the chance of
+instabilities if the algorithm allows it.
 
 =head1 SEE ALSO
 
