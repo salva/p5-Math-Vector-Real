@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.08';
+our $VERSION = '0.09';
 
 use strict;
 use warnings;
@@ -352,6 +352,37 @@ sub canonical_base {
     return @base;
 }
 
+sub rotation_base_3d {
+    my $v = shift;
+    @$v == 3 or croak "rotation_base_3d requires a vector with three dimensions";
+    $v = $v->versor;
+    my $n = [0, 0, 0];
+    for (0..2) {
+        if (CORE::abs($v->[$_]) > 0.57) {
+            $n->[($_ + 1) % 3] = 1;
+            $n = $v->decompose($n)->versor;
+            return ($v, $n, $v x $n);
+        }
+    }
+    die "internal error, all the components where smaller than 0.57!";
+}
+
+sub rotate_3d {
+    my $v = shift;
+    my $angle = shift;
+    my $c = cos($angle); my $s = sin($angle);
+    my ($i, $j, $k) = $v->rotation_base_3d;
+    my $rj = $c * $j + $s * $k;
+    my $rk = $c * $k - $s * $j;
+    if (wantarray) {
+        return map { ($_ * $i) * $i + ($_ * $j) * $rj + ($_ * $k) * $rk } @_;
+    }
+    else {
+        my $a = shift;
+        return (($a * $i) * $i + ($a * $j) * $rj + ($a * $k) * $rk);
+    }
+}
+
 sub normal_base { __PACKAGE__->complementary_base(@_) }
 
 sub complementary_base {
@@ -391,6 +422,8 @@ sub complementary_base {
     }
     wantarray ? @base[0..$last] : $base[0];
 }
+
+
 
 1;
 __END__
@@ -561,7 +594,7 @@ Returns the distance between the two vectors squared.
 Returns the two corners of a hyper-box containing all the given
 vectors.
 
-=item $d = $v->set($u)
+=item $v->set($u)
 
 Equivalent to C<$v = $u> but without allocating a new object.
 
@@ -599,6 +632,19 @@ Note that this two expressions are equivalent:
   @b = $v->normal_base;
   @b = Math::Vector::Real->complementary_base($v);
 
+=item ($i, $j, $k) = $v->rotation_base_3d
+
+Given a 3D vector, returns a list of 3 vectors forming an orthonormal
+base where $i has the same direction as the given vector C<$v> and
+C<$k = $i x $j>.
+
+=item @r = $v->rotate_3d($angle, @s)
+
+Returns the vectors C<@u> rotated around the vector C<$v> an
+angle C<$angle> in radians in anticlockwise direction.
+
+See L<http://en.wikipedia.org/wiki/Rotation_operator_(vector_space)>.
+
 =back
 
 =head2 Zero vector handling
@@ -611,8 +657,8 @@ C<atan2> is an exceptional case that will return 0 when any of its
 arguments is the zero vector (for consistency with the C<atan2> builtin
 operating over real numbers).
 
-In any case note in practice, rounding errors almost always cause the
-check for the zero vector to fail resulting in numerical
+In any case note that, in practice, rounding errors almost always
+cause the check for the zero vector to fail resulting in numerical
 instabilities.
 
 The correct way to handle it is to introduce in your code checks of
@@ -638,7 +684,7 @@ dimensional vectors.
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009, 2011 by Salvador FandiE<ntilde>o
+Copyright (C) 2009-2012 by Salvador FandiE<ntilde>o
 (sfandino@yahoo.com)
 
 This library is free software; you can redistribute it and/or modify
