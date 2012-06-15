@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.09';
+our $VERSION = '0.10';
 
 use strict;
 use warnings;
@@ -448,8 +448,8 @@ Math::Vector::Real - Real vector arithmetic in Perl
 
 A simple pure perl module to manipulate vectors of any dimension.
 
-The function C<V>, always exported by the module, allows to create new
-vectors:
+The function C<V>, always exported by the module, allows one to create
+new vectors:
 
   my $v = V(0, 1, 3, -1);
 

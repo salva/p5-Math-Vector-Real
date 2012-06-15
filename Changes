@@ -1,5 +1,8 @@
 Revision history for Perl extension Math::Vector::Real.
 
+0.10
+        - doc correction (reported by Laszlo Kajan)
+
 0.09  Jun 13, 2012
         - add rotation_base_3d and rotate_3d operations
 
