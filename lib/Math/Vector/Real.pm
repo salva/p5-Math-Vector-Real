@@ -215,11 +215,15 @@ sub abs {
     sqrt $acu;
 }
 
+*norm = \&abs;
+
 sub abs2 {
     my $acu = 0;
     $acu += $_ * $_ for @{$_[0]};
     $acu;
 }
+
+*norm2 = \&abs2;
 
 sub dist {
     &_check_dim;
@@ -241,6 +245,20 @@ sub dist2 {
 	$d2 += $d * $d;
     }
     $d2;
+}
+
+sub manhattan_norm {
+    my $n = 0;
+    $n += CORE::abs($_) for @{$_[0]};
+    return $n;
+}
+
+sub manhattan_dist {
+    &_check_dim;
+    my ($v0, $v1) = @_;
+    my $d = 0;
+    $d += CORE::abs($v0->[$_] - $v1->[$_]) for 0..$#$v0;
+    return $d;
 }
 
 sub _upgrade {
@@ -423,7 +441,8 @@ sub complementary_base {
     wantarray ? @base[0..$last] : $base[0];
 }
 
-
+local ($@, $!, $SIG{__DIE__});
+eval { require Math::Vector::Real::XS };
 
 1;
 __END__
