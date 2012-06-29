@@ -10,6 +10,9 @@ use POSIX ();
 use Exporter qw(import);
 our @EXPORT = qw(V);
 
+local ($@, $!, $SIG{__DIE__});
+eval { require Math::Vector::Real::XS };
+
 our %op = (add => '+',
 	   neg => 'neg',
 	   sub => '-',
@@ -87,6 +90,7 @@ sub _caller_op {
 }
 
 sub _check_dim {
+    local ($@, $SIG{__DIE__});
     eval { @{$_[0]} == @{$_[1]} } and return;
     my $op = _caller_op(1);
     my $loc = ($_[2] ? 'first' : 'second');
@@ -145,18 +149,10 @@ sub mul {
 }
 
 sub mul_me {
-    if (ref $_[1]) {
-	&_check_dim;
-	my ($v0, $v1) = @_;
-	my $acu = 0;
-	$acu += $v0->[$_] * $v1->[$_] for 0..$#$v0;
-	$acu;
-    }
-    else {
-	my ($v, $s) = @_;
-	$_ *= $s for @$v;
-	$v
-    }
+    ref $_[1] and croak "can not multiply by a vector in place as the result is not a vector";
+    my ($v, $s) = @_;
+    $_ *= $s for @$v;
+    $v
 }
 
 sub div {
@@ -440,9 +436,6 @@ sub complementary_base {
     }
     wantarray ? @base[0..$last] : $base[0];
 }
-
-local ($@, $!, $SIG{__DIE__});
-eval { require Math::Vector::Real::XS };
 
 1;
 __END__
