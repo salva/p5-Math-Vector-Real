@@ -299,7 +299,7 @@ sub wrap {
 		  $c - $s * POSIX::floor($c/$s) } (0..$#$self)];
 }
 
-sub max {
+sub max_component {
     my $max = 0;
     for (@{shift()}) {
 	my $abs = CORE::abs($_);
@@ -308,7 +308,7 @@ sub max {
     $max
 }
 
-sub min {
+sub min_component {
     my $self = shift; 
     my $min = CORE::abs($self->[0]);
     for (@$self) {
@@ -318,12 +318,15 @@ sub min {
     $min
 }
 
+*max = \&max_component;
+*min = \&min_component;
+
 sub box {
     shift;
     return unless @_;
     my $min = clone(shift);
     my $max = clone($min);
-    my $dim = @$min - 1;
+    my $dim = $#$min;
     for (@_) {
         for my $ix (0..$dim) {
             my $c = $_->[$ix];
@@ -435,6 +438,25 @@ sub complementary_base {
         $_ = decompose($versor, $_) for @base[$i+1..$#base];
     }
     wantarray ? @base[0..$last] : $base[0];
+}
+
+sub select_in_ball {
+    my $v = shift;
+    my $r = shift;
+    my $r2 = $r * $r;
+    grep $v->dist2($_) <= $r2, @_;
+}
+
+sub select_in_ball_ref2bitmap {
+    my $v = shift;
+    my $r = shift;
+    my $p = shift;
+    my $r2 = $r * $r;
+    my $bm = "\0" x int((@$p + 7) / 8);
+    for my $ix (0..$#$p) {
+        vec($bm, $ix, 1) = 1 if $v->dist2($p->[$ix]) <= $r2;
+    }
+    return $bm;
 }
 
 1;
@@ -581,11 +603,11 @@ inside the grid containing it:
 
   such that ji*wi <= vi <  (ji+1)*wi
 
-=item $max = $v->max
+=item $max = $v->max_component
 
 Returns the maximum of the absolute values of the vector components.
 
-=item $min = $v->min
+=item $min = $v->min_component
 
 Returns the minimum of the absolute values of the vector components.
 
