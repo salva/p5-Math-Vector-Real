@@ -362,7 +362,7 @@ sub min_component_index {
     my $min = CORE::abs($self->[0]);
     my $min_ix = 0;
     for my $ix (1..$#$self) {
-        $c = CORE::abs($self->[$ix]);
+        my $c = CORE::abs($self->[$ix]);
         if ($c < $min) {
             $min = $c;
             $min_ix = $ix
@@ -627,7 +627,7 @@ Returns the maximum of the absolute values of the vector components.
 
 Returns the minimum of the absolute values of the vector components.
 
-=item $d2 = $b->abs2
+=item $d2 = $b->norm2
 
 Returns the norm of the vector squared.
 
@@ -695,26 +695,32 @@ angle C<$angle> in radians in anticlockwise direction.
 
 See L<http://en.wikipedia.org/wiki/Rotation_operator_(vector_space)>.
 
+=item @s = $center->select_in_ball($radius, $v1, $v2, $v3, ...)
+
+Selects from the list of given vectors those that lay inside the
+n-ball determined by the given radius and center (C<$radius and
+C<$center> respectively).
+
 =back
 
 =head2 Zero vector handling
 
 Passing the zero vector to some methods (i.e. C<versor>, C<decompose>,
-C<normal_base>, etc.) is not acceptable, in those cases the module
-will croak with a "division by zero" error.
+C<normal_base>, etc.) is not acceptable. In those cases, the module
+will croak with an "Illegal division by zero" error.
 
 C<atan2> is an exceptional case that will return 0 when any of its
 arguments is the zero vector (for consistency with the C<atan2> builtin
 operating over real numbers).
 
-In any case note that, in practice, rounding errors almost always
-cause the check for the zero vector to fail resulting in numerical
+In any case note that, in practice, rounding errors frequently cause
+the check for the zero vector to fail resulting in numerical
 instabilities.
 
-The correct way to handle it is to introduce in your code checks of
-this kind:
+The correct way to handle this problem is to introduce in your code
+checks of this kind:
 
-  if ($v->abs2 < $epsilon2) {
+  if ($v->norm2 < $epsilon2) {
     croak "$v is too small";
   }
 
