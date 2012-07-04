@@ -698,7 +698,7 @@ See L<http://en.wikipedia.org/wiki/Rotation_operator_(vector_space)>.
 =item @s = $center->select_in_ball($radius, $v1, $v2, $v3, ...)
 
 Selects from the list of given vectors those that lay inside the
-n-ball determined by the given radius and center (C<$radius and
+n-ball determined by the given radius and center (C<$radius> and
 C<$center> respectively).
 
 =back
