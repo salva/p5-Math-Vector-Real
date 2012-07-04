@@ -344,15 +344,31 @@ sub box {
 sub max_component_index {
     my $self = shift;
     return unless @$self;
-    my $max = $self->[0];
+    my $max = 0;
     my $max_ix = 0;
-    for my $ix (1..$#$self) {
-        if ($self->[$ix] > $max) {
+    for my $ix (0..$#$self) {
+        my $c = CORE::abs($self->[$ix]);
+        if ($c > $max) {
+            $max = $c;
             $max_ix = $ix;
-            $max = $self->[$ix];
         }
     }
     $max_ix;
+}
+
+sub min_component_index {
+    my $self = shift;
+    return unless @$self;
+    my $min = CORE::abs($self->[0]);
+    my $min_ix = 0;
+    for my $ix (1..$#$self) {
+        $c = CORE::abs($self->[$ix]);
+        if ($c < $min) {
+            $min = $c;
+            $min_ix = $ix
+        }
+    }
+    $min_ix;
 }
 
 sub decompose {
