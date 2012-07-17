@@ -727,6 +727,12 @@ checks of this kind:
 Or even better, reorder the operations to minimize the chance of
 instabilities if the algorithm allows it.
 
+=head2 Math::Vector::Real::XS
+
+The module L<Math::Vector::Real::XS> reimplements most of the methods
+available from this module in XS. When it is installed,
+C<Math::Vector::Real> when automatically load and use it.
+
 =head1 SEE ALSO
 
 L<Math::Vector::Real::Random> extends this module with random vector
@@ -737,6 +743,20 @@ L<Math::GSL::Vector>, L<PDL>.
 There are other vector manipulation packages in CPAN (L<Math::Vec>,
 L<Math::VectorReal>, L<Math::Vector>), but they can only handle 3
 dimensional vectors.
+
+=head1 SUPPORT
+
+In order to report bugs you can send me and email to the address that
+appears below or use the CPAN RT bugtracking system available at
+L<http://rt.cpan.org>.
+
+The source for the development version of the module is hosted at
+GitHub: L<https://github.com/salva/p5-Math-Vector-Real>.
+
+=head2 My wishlist
+
+If you like this module and you're feeling generous, take a look at my
+Amazon Wish List: L<http://amzn.com/w/1WU1P6IR5QZ42>
 
 =head1 COPYRIGHT AND LICENSE
 
