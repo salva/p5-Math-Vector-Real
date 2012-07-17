@@ -1,6 +1,11 @@
 Revision history for Perl extension Math::Vector::Real.
 
-0.10
+0.10  Jul 17, 2012
+        - correct broken max_component_index method
+        - add select_in_ball method
+        - solve issue in *= operator,
+        - use Math::Vector::Real::XS when available
+        - add manhattan norm and dist methods,
         - doc correction (reported by Laszlo Kajan)
 
 0.09  Jun 13, 2012
