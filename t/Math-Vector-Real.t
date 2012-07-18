@@ -12,7 +12,7 @@ my $w = V(0, 0, 1);
 my $r = V(1, 1, 1);
 
 is (abs($_), 1) for ($u, $v, $w);
-is (abs(abs($u + $w) - sqrt(2)) < 0.0001);
+ok (abs(abs($u + $w) - sqrt(2)) < 0.0001);
 ok (abs(cos(atan2($u, $v)))     < 0.0001);
 ok ($u + $v == [1, 1, 0]);
 ok ($u + $w != [1, 1, 1]);
