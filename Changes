@@ -1,5 +1,8 @@
 Revision history for Perl extension Math::Vector::Real.
 
+0.11
+        - on tests, when comparing floats allow for a small error
+
 0.10  Jul 17, 2012
         - correct broken max_component_index method
         - add select_in_ball method
