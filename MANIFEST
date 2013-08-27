@@ -4,5 +4,6 @@ MANIFEST
 README
 t/Math-Vector-Real.t
 t/pods.t
+t/warnings.t
 lib/Math/Vector/Real.pm
 examples/dist_to_line.pl

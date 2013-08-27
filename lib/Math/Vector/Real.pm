@@ -338,7 +338,7 @@ sub box {
             }
         }
     }
-    ($min, $max);
+    wantarray ? ($min, $max) : $max - $min;
 }
 
 sub max_component_index {
@@ -644,6 +644,9 @@ Returns the distance between the two vectors squared.
 Returns the two corners of a hyper-box containing all the given
 vectors.
 
+In scalar context returns the difference between the two corners (the
+diagonal vector).
+
 =item $v->set($u)
 
 Equivalent to C<$v = $u> but without allocating a new object.
@@ -672,7 +675,7 @@ wrong result may be generated.
 
 =item @b = $v->normal_base
 
-Returns a set of vectors forming an ortonormal base for the hyperplane
+Returns a set of vectors forming an orthonormal base for the hyperplane
 normal to $v.
 
 In scalar context returns just some unitary vector normal to $v.
@@ -747,7 +750,7 @@ dimensional vectors.
 =head1 SUPPORT
 
 In order to report bugs you can send me and email to the address that
-appears below or use the CPAN RT bugtracking system available at
+appears below or use the CPAN RT bug-tracking system available at
 L<http://rt.cpan.org>.
 
 The source for the development version of the module is hosted at
@@ -756,7 +759,7 @@ GitHub: L<https://github.com/salva/p5-Math-Vector-Real>.
 =head2 My wishlist
 
 If you like this module and you're feeling generous, take a look at my
-Amazon Wish List: L<http://amzn.com/w/1WU1P6IR5QZ42>
+wishlist: L<http://amzn.com/w/1WU1P6IR5QZ42>
 
 =head1 COPYRIGHT AND LICENSE
 
