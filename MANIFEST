@@ -7,3 +7,4 @@ t/pods.t
 t/warnings.t
 lib/Math/Vector/Real.pm
 examples/dist_to_line.pl
+examples/Math-Matrix.pl
