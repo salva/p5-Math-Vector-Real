@@ -274,11 +274,18 @@ sub _upgrade {
 
 sub atan2 {
     my ($v0, $v1) = @_;
-    my $a0 = &abs($v0);
-    return 0 unless $a0;
-    my $u0 = $v0 / $a0;
-    my $p = $v1 * $u0;
-    CORE::atan2(&abs($v1 - $p * $u0), $p);
+    if (@$v0 == 2) {
+        my $dot = $v0->[0] * $v1->[0] + $v0->[1] * $v1->[1];
+        my $cross = $v0->[0] * $v1->[1] - $v0->[1] * $v1->[0];
+        return CORE::atan2($cross, $dot);
+    }
+    else {
+        my $a0 = &abs($v0);
+        return 0 unless $a0;
+        my $u0 = $v0 / $a0;
+        my $p = $v1 * $u0;
+        CORE::atan2(&abs($v1 - $p * $u0), $p);
+    }
 }
 
 sub versor {
