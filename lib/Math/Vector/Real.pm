@@ -348,6 +348,20 @@ sub box {
     wantarray ? ($min, $max) : $max - $min;
 }
 
+sub nearest_in_box {
+    my $p = shift->clone;
+    my ($min, $max) = Math::Vector::Real::Box->(@_);
+    for (0..$#$self) {
+        if ($p->[$_] < $min->[$_]) {
+            $p->[$_] = $min->[$_];
+        }
+        elsif ($p->[$_] > $max->[$_]) {
+            $p->[$_] = $max->[$_];
+        }
+    }
+    $p
+}
+
 sub max_component_index {
     my $self = shift;
     return unless @$self;
@@ -648,11 +662,27 @@ Returns the distance between the two vectors squared.
 
 =item ($bottom, $top) = Math::Vector::Real->box($v0, $v1, $v2, ...)
 
-Returns the two corners of a hyper-box containing all the given
-vectors.
+Returns the two corners of the L<axis-aligned minimum bounding
+box|http://en.wikipedia.org/wiki/Minimum_bounding_box#Axis-aligned_minimum_bounding_box>
+(or L<hyperrectangle|http://en.wikipedia.org/wiki/Hyperrectangle>) for
+the given vectors.
 
 In scalar context returns the difference between the two corners (the
-diagonal vector).
+box diagonal vector).
+
+=item $p = $v->nearest_in_box($w0, $w1, ...)
+
+Returns the vector nearest to C<$v> from the axis-aligned minimum box
+bounding the given set of vectors.
+
+For instance, fiven a point C<$v> and an axis-aligned rectangle
+defined by two oposite corners (C<$c0> and C<$c1>), this method can be
+used to find the point nearest to C<$v> from inside the rectangle:
+
+  my $n = $v->nearest_in_box($c0, $c1);
+
+Note that if C<$v> lays inside the box, the nearest point is C<$v>
+itself. Otherwise it will be a point from the box hyper-surface.
 
 =item $v->set($u)
 
