@@ -19,15 +19,16 @@ eval { require Math::Vector::Real::XS } unless $dont_use_XS;
 our %op = (add => '+',
 	   neg => 'neg',
 	   sub => '-',
+           conj => '~',
 	   mul => '*',
 	   div => '/',
-	   cross => 'x',
+	   magic_mul => 'x',
 	   add_me => '+=',
 	   sub_me => '-=',
 	   mul_me => '*=',
 	   div_me => '/=',
 	   abs => 'abs',
-	   atan2 => 'atan2',
+	   atan2 => 'ang',
 	   equal => '==',
 	   nequal => '!=',
 	   clone => '=',
@@ -124,6 +125,11 @@ sub add_me {
 
 sub neg { bless [map -$_, @{$_[0]}] }
 
+sub conj {
+    my $v = $_[0];
+    bless [@$v < 2 ? @$v : $v->[0], map -$_, @$v[1..$#$v]]
+}
+
 sub sub {
     &_check_dim;
     my ($v0, $v1) = ($_[2] ? @_[1, 0] : @_);
@@ -159,8 +165,7 @@ sub mul_me {
 }
 
 sub div {
-    croak "can't use vector as dividend"
-	if ($_[2] or ref $_[1]);
+    goto &_magic_div if $_[2] or ref $_[1]);
     my ($v, $div) = @_;
     $div == 0 and croak "illegal division by zero";
     my $i = 1 / $div;
@@ -168,7 +173,7 @@ sub div {
 }
 
 sub div_me {
-    croak "can't use vector as dividend" if ref $_[1];
+    goto &_magic_div if ref $_[1];
     my $v = shift;
     my $i = 1 / shift;
     $_ *= $i for @$v;
@@ -189,20 +194,112 @@ sub nequal {
     0;
 }
 
-sub cross {
-    &_check_dim;
-    my ($v0, $v1) = ($_[2] ? @_[1, 0] : @_);
-    my $dim = @$v0;
-    if ($dim == 3) {
-	return bless [$v0->[1] * $v1->[2] - $v0->[2] * $v1->[1],
-		      $v0->[2] * $v1->[0] - $v0->[0] * $v1->[2],
-		      $v0->[0] * $v1->[1] - $v0->[1] * $v1->[0]]
-    }
-    if ($dim == 7) {
-	croak "cross product for dimension 7 not implemented yet, patches welcome!";
+sub magic_mul {
+    if (UNIVERSAL::isa($_[1], 'ARRAY')) {
+        my ($v0, $v1) = ($_[2] ? @_[1, 0] : @_);
+        my $d0 = @$v0;
+        my $d1 = @$v1;
+
+        if ($d0 == 3) {
+            if ($d1 == 3) {
+                # 3d cross product
+                my (     $b0, $c0, $d0) = @$v0;
+                my (     $b1, $c1, $d1) = @$v1;
+                return bless [
+                                                      $c0 * $d1 - $d0 * $c1,
+                                        - $b0 * $d1             + $d0 * $b1,
+                                          $b0 * $c1 - $c0 * $b1             ]
+            }
+            if ($d1 == 4) {
+                # quaternion product, taking v0 as a pure imaginary quaternion
+                my (     $b0, $c0, $d0) = @$v0;
+                my ($a1, $b1, $c1, $d1) = @$v1;
+                return bless [          - $b0 * $b1 - $c0 * $c1 - $d0 * $d1,
+                                          $b0 * $a1 + $c0 * $d1 - $d0 * $c1,
+                                        - $b0 * $d1 + $c0 * $a1 + $d0 * $b1,
+                                          $b0 * $c1 - $c0 * $b1 + $d0 * $a1 ]
+            }
+        }
+        elsif ($d0 == 4) {
+            if ($d1 == 3) {
+                # quaternion product, taking v1 as a pure imaginary quaternion
+                my ($a0, $b0, $c0, $d0) = @$v0;
+                my (     $b1, $c1, $d1) = @$v1;
+                return bless [          - $b0 * $b1 - $c0 * $c1 - $d0 * $d1,
+                              $a0 * $b1             + $c0 * $d1 - $d0 * $c1,
+                              $a0 * $c1 - $b0 * $d1             + $d0 * $b1,
+                              $a0 * $d1 + $b0 * $c1 - $c0 * $b1             ]
+            }
+            if ($d1 == 4) {
+                # quaternion product
+                my ($a0, $b0, $c0, $d0) = @$v0;
+                my ($a1, $b1, $c1, $d1) = @$v1;
+                return bless [$a0 * $a1 - $b0 * $b1 - $c0 * $c1 - $d0 * $d1,
+                              $a0 * $b1 + $b0 * $a1 + $c0 * $d1 - $d0 * $c1,
+                              $a0 * $c1 - $b0 * $d1 + $c0 * $a1 + $d0 * $b1,
+                              $a0 * $d1 + $b0 * $c1 - $c0 * $b1 + $d0 * $a1 ]
+            }
+        }
+        if ($d0 == 2 and $d1 == 2) {
+            # complex multiplication
+            my ($a0, $b0) = @$v0;
+            my ($a1, $b1) = @$v1;
+            return bless [$a0 * $a1 - $b0 * $b1,
+                          $a0 * $b1 + $b0 * $a1]
+        }
+        croak "magic product not defined for dimensions ${d0}x${d1}"
     }
     else {
-	croak "cross product not defined for dimension $dim"
+        # scalar multiplication, for consistency with div and _magic_div
+        my ($v, $s) = @_;
+        return bless [map $s * $_, @$v];
+    }
+}
+
+sub _magic_div {
+    if (UNIVERSAL::isa($_[1], 'ARRAY')) {
+        my ($v0, $v1) = ($_[2] ? @_[1, 0] : @_);
+        my $d0 = @$v0;
+        my $d1 = @$v1;
+        if ($d0 == 4 and $d1 == 4) {
+            my ($a0, $b0, $c0, $d0) = @$v0;
+            my ($a1, $b1, $c1, $d1) = @$v1;
+            my $n2 = $a1 * $a1 + $b1 * $b1 + $c1 * $c1 + $d1 * $d1 or croak "illegal division by zero";
+            return bless [$n2i * ( $a0 * $a1 + $b0 * $b1 + $c0 * $c1 + $d0 * $d1),
+                          $n2i * (-$a0 * $b1 + $b0 * $a1 - $c0 * $d1 + $d0 * $c1),
+                          $n2i * (-$a0 * $c1 + $b0 * $d1 + $c0 * $a1 - $d0 * $b1),
+                          $n2i * (-$a0 * $d1 - $b0 * $c1 + $c0 * $b1 + $d0 * $a1) ]
+        }
+        if ($d0 == 2 and $d1 == 2) {
+            my ($a0, $b0) = @$v0;
+            my ($a1, $b1) = @$v1;
+            my $n2 = $a1 * $a1 + $b1 * $b1 or croak "illegal division by zero";
+            my $n2i = 1/$n2;
+            return bless [$n2i * ( $a0 * $a1 + $b0 * $b1),
+                          $n2i * (-$a0 * $b1 + $a1 * $b0)];
+        }
+    }
+    else {
+        # scalar divided by vector
+        my ($v, $s) = @_;
+        my $d = @$v;
+        if ($d == 2) {
+            my ($a, $b) = @$v;
+            my $n2 = $a * $a + $b * $b or croak "illegal division by zero";
+            $s /= $n2;
+            return bless [ $s * $a,
+                          -$s * $b ]
+        }
+        if ($d == 4) {
+            my ($a, $b, $c, $d) = @$v;
+            my $n2 = $a * $a + $b * $b + $c * $c + $d * $d or croak "illegal division by zero";
+            $s /= $n2;
+            return bless [ $s * $a,
+                          -$s * $b,
+                          -$s * $c,
+                          -$s * $d ]
+        }
+        croak "magic division is not defined between a scalar and a vector of dimension $d";
     }
 }
 
@@ -246,6 +343,44 @@ sub dist2 {
     $d2;
 }
 
+sub cos_ang {
+    &_check_dim;
+    my ($v0, $v1) = @_;
+    my $div2 = abs2($v0) * abs2($v1) or return "illegal division by zero";
+    $v0 * $v1 / sqrt($div2);
+}
+
+sub sin_ang {
+    &_check_dim;
+    my ($v0, $v1) = @_;
+    my $div2 = abs2($v0) * abs2($v1) or return 0;
+    my $v0v1 = $v0 * $v1;
+    sqrt(1 - $v0v1*$v0v1 / $div2);
+}
+
+sub ang {
+    &_check_dim;
+    my ($v0, $v1) = @_;
+    my $div2 = abs2($v0) * abs2($v1) or return 0;
+    acos($v0 * $v1 / sqrt($div2));
+}
+
+sub slerp {
+    &_check_dim;
+    # FIXME: this method is quite unstable for angles approaching 0 or PI
+    my ($v0, $v1, $r) = @_;
+    my $ang = ang($v0, $v1) or goto &lerp;
+    my $s = sin($ang) or croak "illegal division by zero";
+    my $si = 1 / $s;
+    $si * sin((1-$r)*$ang) * $v0 + $si * sin($r * $ang) * $v1;
+}
+
+sub lerp {
+    &_check_dim;
+    my ($v0, $v1, $r) = @_;
+    (1 - $r) * $v0 + $r * $v1;
+}
+
 sub manhattan_norm {
     my $n = 0;
     $n += CORE::abs($_) for @{$_[0]};
@@ -273,22 +408,6 @@ sub _upgrade {
 	}
 	UNIVERSAL::isa($_, __PACKAGE__) ? $_ : clone($_);
     } @_;
-}
-
-sub atan2 {
-    my ($v0, $v1) = @_;
-    if (@$v0 == 2) {
-        my $dot = $v0->[0] * $v1->[0] + $v0->[1] * $v1->[1];
-        my $cross = $v0->[0] * $v1->[1] - $v0->[1] * $v1->[0];
-        return CORE::atan2($cross, $dot);
-    }
-    else {
-        my $a0 = &abs($v0);
-        return 0 unless $a0;
-        my $u0 = $v0 / $a0;
-        my $p = $v1 * $u0;
-        CORE::atan2(&abs($v1 - $p * $u0), $p);
-    }
 }
 
 sub versor {
@@ -449,7 +568,7 @@ sub canonical_base {
 
 sub rotation_base_3d {
     my $v = shift;
-    @$v == 3 or croak "rotation_base_3d requires a vector with three dimensions";
+    @$v == 3 or croak "rotation_base_3d requires a three-dimensional vector";
     $v = $v->versor;
     my $n = [0, 0, 0];
     for (0..2) {
@@ -460,6 +579,47 @@ sub rotation_base_3d {
         }
     }
     die "internal error, all the components where smaller than 0.57!";
+}
+
+sub rotation_quaternion {
+    my ($v, $ang) = @_;
+    @$v == 3 or croak "rotation_quaternion requires a three-dimensional vector";
+    $hang = 0.5 * $ang;
+    my $n2 = $b * $b + $c * $c + $d * $d or croak "illegal division by zero";
+    my $s = -sin($hang)/sqrt($n2);
+    my ($b, $c, $d) = @$v;
+    bless [cos($hang), $s * $b, $s * $c, $s * $d];
+}
+
+sub quaternion_conj {
+    &_check_dim;
+    my ($v0, $v1) = @_;
+    @$v0 == 4 or croak "quaternion_conj requires a four-dimensional vector as first argument";
+    $v0 x $v1 / $v0
+}
+
+sub quaternion_rotate_3d {
+    my ($v0, $v1) = @_;
+    croak "quaternion_rotate_3d requires a four-dimensional vector as its first argument ".
+        "and a three-dimensional vector as its seconds argument"
+            unless @$v0 == 4 and @$v1 == 3;
+
+    # v0 = q = (w, r)
+    # v1 = v
+    # t = r x v + wv
+    # result = v + 2r x (r x v + wv) = v + 2r x t
+
+    my ($w, $br, $cr, $dr) = @$v0;
+    my (    $bv, $cv, $dv) = @$v1;
+
+    my $bt = $bv * $w + $cr * $dv - $dr * $cv;
+    my $ct = $cv * $w + $dr * $bv - $br * $dv;
+    my $dt = $dv * $w + $br * $cv - $cr * $bv;
+
+    bless [$bv + 2 * ($cr * $dt - $dr * $ct),
+           $cv + 2 * ($dr * $bt - $br * $dt),
+           $dv + 2 * ($br * $ct - $cr * $bt)];
+
 }
 
 sub rotate_3d {
