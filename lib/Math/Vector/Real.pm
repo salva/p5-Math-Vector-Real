@@ -351,7 +351,7 @@ sub box {
 sub nearest_in_box {
     my $p = shift->clone;
     my ($min, $max) = Math::Vector::Real::Box->(@_);
-    for (0..$#p) {
+    for (0..$#$p) {
         if ($p->[$_] < $min->[$_]) {
             $p->[$_] = $min->[$_];
         }
