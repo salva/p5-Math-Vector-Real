@@ -362,6 +362,24 @@ sub nearest_in_box {
     $p
 }
 
+sub nearest_in_box_border {
+    my $p = shift->clone;
+    my ($b0, $b1) = Math::Vector::Real->box(@_);
+    my ($min_d, $comp, $comp_ix);
+    for my $q ($b0, $b1) {
+        for (0..$#$p) {
+            my $d = CORE::abs($p->[$_] - $q->[$_]);
+            if (!defined $min_d or $min_d < $d) {
+                $min_d = $d;
+                $comp = $q->[$_];
+                $comp_ix = $_;
+            }
+        }
+    }
+    $p->[$comp_ix] = $comp;
+    wantarray ? ($p, $min_d) : $p;
+}
+
 sub max_component_index {
     my $self = shift;
     return unless @$self;
