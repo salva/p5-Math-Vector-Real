@@ -369,7 +369,7 @@ sub nearest_in_box_border {
     for my $q ($b0, $b1) {
         for (0..$#$p) {
             my $d = CORE::abs($p->[$_] - $q->[$_]);
-            if (!defined $min_d or $min_d < $d) {
+            if (!defined $min_d or $min_d > $d) {
                 $min_d = $d;
                 $comp = $q->[$_];
                 $comp_ix = $_;
