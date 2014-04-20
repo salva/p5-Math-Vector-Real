@@ -1,6 +1,7 @@
 Revision history for Perl extension Math::Vector::Real.
 
 0.11
+        - add max_dist2_between_boxes method
         - add nearest_in_box method
         - on tests, when comparing floats allow for a small error
 

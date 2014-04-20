@@ -380,6 +380,21 @@ sub nearest_in_box_border {
     wantarray ? ($p, $min_d) : $p;
 }
 
+sub max_dist2_between_boxes {
+    my ($class, $a0, $a1, $b0, $b1) = @_;
+    my ($c0, $c1) = $class->box($a0, $a1);
+    my ($d0, $d1) = $class->box($b0, $b1);
+    my $d2 = 0;
+    for (0..$#$c0) {
+        my $e0 = $d1->[$_] - $c0->[$_];
+        my $e1 = $d0->[$_] - $c1->[$_];
+        $e0 *= $e0;
+        $e1 *= $e1;
+        $d2 += ($e0 > $e1 ? $e0 : $e1);
+    }
+    $d2;
+}
+
 sub max_component_index {
     my $self = shift;
     return unless @$self;
@@ -701,6 +716,12 @@ used to find the point nearest to C<$v> from inside the rectangle:
 
 Note that if C<$v> lays inside the box, the nearest point is C<$v>
 itself. Otherwise it will be a point from the box hyper-surface.
+
+=item $d2 = Math::Vector::Real->max_dist2_between_boxes($a0, $a1, $b0, $b1)
+
+Returns the square of the maximun distance between any two points
+belonging respectively to the boxes defined by C<($a0, $a1)> and
+C<($b0, $b1)>.
 
 =item $v->set($u)
 
