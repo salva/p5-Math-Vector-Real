@@ -11,7 +11,10 @@ use Exporter qw(import);
 our @EXPORT = qw(V);
 
 local ($@, $!, $SIG{__DIE__});
-eval { require Math::Vector::Real::XS };
+
+our $dont_use_XS;
+
+eval { require Math::Vector::Real::XS } unless $dont_use_XS;
 
 our %op = (add => '+',
 	   neg => 'neg',
@@ -327,6 +330,11 @@ sub min_component {
 
 *max = \&max_component;
 *min = \&min_component;
+
+sub first_orthant_reflection {
+    my $self = shift;
+    bless [map CORE::abs, @$self];
+}
 
 sub box {
     shift;
@@ -731,7 +739,17 @@ Note that this method is destructive.
 
 =item $d = $v->max_component_index
 
-Return the index of the vector component with the maximum size.
+Returns the index of the vector component with the maximum size.
+
+=item $r = $v->first_orthant_reflection
+
+Given the set of vectors formed by C<$v> and all its reflections
+around the axis-aligned hyperplanes, this method returns the one lying
+on the first orthant.
+
+See also
+[http://en.wikipedia.org/wiki/Reflection_%28mathematics%29|reflection]
+and [http://en.wikipedia.org/wiki/Orthant|orthant].
 
 =item ($p, $n) = $v->decompose($u)
 
