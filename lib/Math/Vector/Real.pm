@@ -716,8 +716,8 @@ box diagonal vector).
 Returns the vector nearest to C<$v> from the axis-aligned minimum box
 bounding the given set of vectors.
 
-For instance, fiven a point C<$v> and an axis-aligned rectangle
-defined by two oposite corners (C<$c0> and C<$c1>), this method can be
+For instance, given a point C<$v> and an axis-aligned rectangle
+defined by two opposite corners (C<$c0> and C<$c1>), this method can be
 used to find the point nearest to C<$v> from inside the rectangle:
 
   my $n = $v->nearest_in_box($c0, $c1);
@@ -727,7 +727,7 @@ itself. Otherwise it will be a point from the box hyper-surface.
 
 =item $d2 = Math::Vector::Real->max_dist2_between_boxes($a0, $a1, $b0, $b1)
 
-Returns the square of the maximun distance between any two points
+Returns the square of the maximum distance between any two points
 belonging respectively to the boxes defined by C<($a0, $a1)> and
 C<($b0, $b1)>.
 
