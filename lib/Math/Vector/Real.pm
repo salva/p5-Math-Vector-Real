@@ -6,6 +6,7 @@ use strict;
 use warnings;
 use Carp;
 use POSIX ();
+use Math::Trig ();
 
 use Exporter qw(import);
 our @EXPORT = qw(V);
@@ -28,7 +29,7 @@ our %op = (add => '+',
 	   mul_me => '*=',
 	   div_me => '/=',
 	   abs => 'abs',
-	   atan2 => 'ang',
+	   ang => 'atan2',
 	   equal => '==',
 	   nequal => '!=',
 	   clone => '=',
@@ -165,7 +166,7 @@ sub mul_me {
 }
 
 sub div {
-    goto &_magic_div if $_[2] or ref $_[1]);
+    goto &_magic_div if $_[2] or ref $_[1];
     my ($v, $div) = @_;
     $div == 0 and croak "illegal division by zero";
     my $i = 1 / $div;
@@ -265,6 +266,7 @@ sub _magic_div {
             my ($a0, $b0, $c0, $d0) = @$v0;
             my ($a1, $b1, $c1, $d1) = @$v1;
             my $n2 = $a1 * $a1 + $b1 * $b1 + $c1 * $c1 + $d1 * $d1 or croak "illegal division by zero";
+            my $n2i = 1/$n2;
             return bless [$n2i * ( $a0 * $a1 + $b0 * $b1 + $c0 * $c1 + $d0 * $d1),
                           $n2i * (-$a0 * $b1 + $b0 * $a1 - $c0 * $d1 + $d0 * $c1),
                           $n2i * (-$a0 * $c1 + $b0 * $d1 + $c0 * $a1 - $d0 * $b1),
@@ -362,7 +364,7 @@ sub ang {
     &_check_dim;
     my ($v0, $v1) = @_;
     my $div2 = abs2($v0) * abs2($v1) or return 0;
-    acos($v0 * $v1 / sqrt($div2));
+    Math::Trig::acos($v0 * $v1 / sqrt($div2));
 }
 
 sub slerp {
@@ -584,10 +586,10 @@ sub rotation_base_3d {
 sub rotation_quaternion {
     my ($v, $ang) = @_;
     @$v == 3 or croak "rotation_quaternion requires a three-dimensional vector";
-    $hang = 0.5 * $ang;
+    my $hang = 0.5 * $ang;
+    my ($b, $c, $d) = @$v;
     my $n2 = $b * $b + $c * $c + $d * $d or croak "illegal division by zero";
     my $s = -sin($hang)/sqrt($n2);
-    my ($b, $c, $d) = @$v;
     bless [cos($hang), $s * $b, $s * $c, $s * $d];
 }
 
