@@ -22,12 +22,12 @@ our %op = (add => '+',
 	   sub => '-',
            conj => '~',
 	   mul => '*',
-	   div => '/',
+	   magic_div => '/',
 	   magic_mul => 'x',
 	   add_me => '+=',
 	   sub_me => '-=',
 	   mul_me => '*=',
-	   div_me => '/=',
+	   magic_div_me => '/=',
 	   abs => 'abs',
 	   ang => 'atan2',
 	   equal => '==',
@@ -165,22 +165,6 @@ sub mul_me {
     $v
 }
 
-sub div {
-    goto &_magic_div if $_[2] or ref $_[1];
-    my ($v, $div) = @_;
-    $div == 0 and croak "illegal division by zero";
-    my $i = 1 / $div;
-    bless [map $i * $_, @$v]
-}
-
-sub div_me {
-    goto &_magic_div if ref $_[1];
-    my $v = shift;
-    my $i = 1 / shift;
-    $_ *= $i for @$v;
-    $v;
-}
-
 sub equal {
     &_check_dim;
     my ($v0, $v1) = @_;
@@ -257,8 +241,16 @@ sub magic_mul {
     }
 }
 
-sub _magic_div {
-    if (UNIVERSAL::isa($_[1], 'ARRAY')) {
+sub magic_div_me {
+    goto &_magic_div if ref $_[1];
+    my $v = shift;
+    my $i = 1 / shift;
+    $_ *= $i for @$v;
+    $v;
+}
+
+sub magic_div {
+    if (ref $_[1]) { # UNIVERSAL::isa($_[1], 'ARRAY')) {
         my ($v0, $v1) = ($_[2] ? @_[1, 0] : @_);
         my $d0 = @$v0;
         my $d1 = @$v1;
@@ -281,7 +273,7 @@ sub _magic_div {
                           $n2i * (-$a0 * $b1 + $a1 * $b0)];
         }
     }
-    else {
+    elsif ($_[2]) {
         # scalar divided by vector
         my ($v, $s) = @_;
         my $d = @$v;
@@ -302,6 +294,13 @@ sub _magic_div {
                           -$s * $d ]
         }
         croak "magic division is not defined between a scalar and a vector of dimension $d";
+    }
+    else {
+        # vector divided by scalar
+        my ($v, $div) = @_;
+        $div == 0 and croak "illegal division by zero";
+        my $i = 1 / $div;
+        bless [map $i * $_, @$v]
     }
 }
 
@@ -769,6 +768,12 @@ is automatically upgraded to a vector. For instance:
 
   my $v = V(1, 2);
   $v += [0, 2];
+
+Note that the overloaded C<x> operator can only be used on scalar
+context. This is a frequent source of bugs as for instance:
+
+  vector_operation($a x $b);         # wrong
+  vector_operation(scalar($a x $b)); # right!
 
 =head2 Extra methods
 
