@@ -601,8 +601,8 @@ sub quaternion_conj {
 
 sub quaternion_rotate_3d {
     my ($v0, $v1) = @_;
-    croak "quaternion_rotate_3d requires a four-dimensional vector as its first argument ".
-        "and a three-dimensional vector as its seconds argument"
+    croak "quaternion_rotate_3d requires a four-dimensional unitarian vector as" .
+          "its first argument and a three-dimensional vector as its seconds argument"
             unless @$v0 == 4 and @$v1 == 3;
 
     # v0 = q = (w, r)
