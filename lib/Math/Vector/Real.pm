@@ -384,13 +384,13 @@ sub dist2_to_box {
     my $d2 = 0;
     my ($min, $max) = Math::Vector::Real->box(@_);
     for (0..$#$p) {
-        if ($n->[$_] < $min->[$_]) {
-            my $d = $n->[$_] - $min->[$_];
+        if ($p->[$_] < $min->[$_]) {
+            my $d = $p->[$_] - $min->[$_];
             $d2 += $d * $d;
         }
-        elsif ($n->[$_] > $max->[$_]) {
-            my $d = $n->[$_] - $max->[$_];
-            $n->[$_] = $max->[$_];
+        elsif ($p->[$_] > $max->[$_]) {
+            my $d = $p->[$_] - $max->[$_];
+            $p->[$_] = $max->[$_];
             $d2 += $d * $d;
         }
     }
