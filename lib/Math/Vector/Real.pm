@@ -336,6 +336,15 @@ sub first_orthant_reflection {
     bless [map CORE::abs, @$self];
 }
 
+sub sum {
+    my $sum;
+    if (@_) {
+        $sum = V(@{shift()});
+        $sum += $_ for @_;
+    }
+    return $sum;
+}
+
 sub box {
     shift;
     return unless @_;
@@ -368,6 +377,24 @@ sub nearest_in_box {
         }
     }
     $p
+}
+
+sub dist2_to_box {
+    my $p = shift;
+    my $d2 = 0;
+    my ($min, $max) = Math::Vector::Real->box(@_);
+    for (0..$#$p) {
+        if ($n->[$_] < $min->[$_]) {
+            my $d = $n->[$_] - $min->[$_];
+            $d2 += $d * $d;
+        }
+        elsif ($n->[$_] > $max->[$_]) {
+            my $d = $n->[$_] - $max->[$_];
+            $n->[$_] = $max->[$_];
+            $d2 += $d * $d;
+        }
+    }
+    $d2;
 }
 
 sub nearest_in_box_border {
