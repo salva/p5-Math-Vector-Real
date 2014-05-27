@@ -337,6 +337,7 @@ sub first_orthant_reflection {
 }
 
 sub sum {
+    ref $_[0] or shift; # works both as a class and as an instance method
     my $sum;
     if (@_) {
         $sum = V(@{shift()});
