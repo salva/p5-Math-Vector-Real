@@ -752,6 +752,12 @@ used to find the point nearest to C<$v> from inside the rectangle:
 Note that if C<$v> lays inside the box, the nearest point is C<$v>
 itself. Otherwise it will be a point from the box hyper-surface.
 
+=item $d2 = $v->dist2_to_box($w0, $w1, ...)
+
+Calculates the square of the minimal distance between the vector C<$v>
+and the minimal axis-aligned box containing all the vectors C<($w0,
+$w1, ...)>.
+
 =item $d2 = Math::Vector::Real->max_dist2_between_boxes($a0, $a1, $b0, $b1)
 
 Returns the square of the maximum distance between any two points
@@ -784,6 +790,10 @@ Decompose the given vector C<$u> in two vectors: one parallel to C<$v>
 and another normal.
 
 In scalar context returns the normal vector.
+
+=item $v = Math::Vector::Real->sum(@v)
+
+Returns the sum of all the given vectors.
 
 =item @b = Math::Vector::Real->complementary_base(@v)
 
