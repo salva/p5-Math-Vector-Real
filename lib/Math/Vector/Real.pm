@@ -170,7 +170,7 @@ sub div {
 sub div_me {
     croak "can't use vector as dividend" if ref $_[1];
     my $v = shift;
-    my $i = 1 / shift;
+    my $i = 1.0 / shift;
     $_ *= $i for @$v;
     $v;
 }
@@ -398,21 +398,50 @@ sub dist2_to_box {
 }
 
 sub nearest_in_box_border {
+    # TODO: this method can be optimized
     my $p = shift->clone;
     my ($b0, $b1) = Math::Vector::Real->box(@_);
-    my ($min_d, $comp, $comp_ix);
-    for my $q ($b0, $b1) {
-        for (0..$#$p) {
-            my $d = CORE::abs($p->[$_] - $q->[$_]);
-            if (!defined $min_d or $min_d > $d) {
-                $min_d = $d;
-                $comp = $q->[$_];
-                $comp_ix = $_;
-            }
+    my $in = 0;
+    for (0..$#$p) {
+        if ($p->[$_] < $b0->[$_]) {
+            $p->[$_] = $b0->[$_];
+        }
+        elsif ($p->[$_] > $b1->[$_]) {
+            $p->[$_] = $b1->[$_];
+        }
+        else {
+            $in++;
         }
     }
-    $p->[$comp_ix] = $comp;
-    wantarray ? ($p, $min_d) : $p;
+    if ($in == @$p) {
+        # vector was inside the box
+        my $min_d = 'inf';
+        my ($comp, $comp_ix);
+        for my $q ($b0, $b1) {
+            for (0..$#$p) {
+                my $d = CORE::abs($p->[$_] - $q->[$_]);
+                if ($min_d > $d) {
+                    $min_d = $d;
+                    $comp = $q->[$_];
+                    $comp_ix = $_;
+                }
+            }
+        }
+        $p->[$comp_ix] = $comp;
+    }
+    $p;
+}
+
+sub max_dist2_to_box {
+    my $p = shift;
+    my ($c0, $c1) = Math::Vector::Real->box(@_);
+    my $d2 = 0;
+    for (0..$#$p) {
+        my $d0 = CORE::abs($c0->[$_] - $p->[$_]);
+        my $d1 = CORE::abs($c1->[$_] - $p->[$_]);
+        $d2 += ($d0 >= $d1 ? $d0 * $d0 : $d1 * $d1);
+    }
+    return $d2;
 }
 
 sub max_dist2_between_boxes {
@@ -755,6 +784,12 @@ itself. Otherwise it will be a point from the box hyper-surface.
 =item $d2 = $v->dist2_to_box($w0, $w1, ...)
 
 Calculates the square of the minimal distance between the vector C<$v>
+and the minimal axis-aligned box containing all the vectors C<($w0,
+$w1, ...)>.
+
+=item $d2 = $v->max_dist2_to_box($w0, $w1, ...)
+
+Calculates the square of the maximum distance between the vector C<$v>
 and the minimal axis-aligned box containing all the vectors C<($w0,
 $w1, ...)>.
 
