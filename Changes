@@ -1,6 +1,7 @@
 Revision history for Perl extension Math::Vector::Real.
 
 0.12
+        - more tests added
         - add max_dist2_to_box method
         - add dist2_to_box method
         - add sum method
