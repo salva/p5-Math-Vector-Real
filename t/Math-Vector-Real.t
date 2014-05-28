@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-use Test::More tests => 27;
+use Test::More tests => 29;
 
 use Math::Vector::Real;
 
@@ -43,3 +43,7 @@ ok ([  1,   1,   0] x $x == [   4,   -4,   1]);
 ok ([ -4,   4,  -1] x $x == [  19,   14, -20]);
 ok ([-19, -14,  20] x $x == [-116,  116, -29]);
 
+ok ($x / 2 == [1, 1.5, 2]);
+my $y = V(@$x);
+$y /= 2;
+ok ($y == [1, 1.5, 2]);
