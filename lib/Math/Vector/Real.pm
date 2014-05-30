@@ -381,6 +381,7 @@ sub nearest_in_box {
 }
 
 sub dist2_to_box {
+    @_ > 1 or croak 'Usage: $v->dist2_to_box($w0, ...)';
     my $p = shift;
     my $d2 = 0;
     my ($min, $max) = Math::Vector::Real->box(@_);
@@ -433,6 +434,7 @@ sub nearest_in_box_border {
 }
 
 sub max_dist2_to_box {
+    @_ > 1 or croak 'Usage: $v->max_dist2_to_box($w0, ...)';
     my $p = shift;
     my ($c0, $c1) = Math::Vector::Real->box(@_);
     my $d2 = 0;
