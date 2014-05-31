@@ -3,7 +3,6 @@ Makefile.PL
 MANIFEST
 README
 t/Math-Vector-Real.t
-t/warnings.t
 t/dont_use_xs
 lib/Math/Vector/Real.pm
 examples/dist_to_line.pl
