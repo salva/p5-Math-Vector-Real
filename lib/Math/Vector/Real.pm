@@ -10,11 +10,21 @@ use POSIX ();
 use Exporter qw(import);
 our @EXPORT = qw(V);
 
-local ($@, $!, $SIG{__DIE__});
-
 our $dont_use_XS;
+unless ($dont_use_XS) {
+    my $xs_version = do {
+	local ($@, $!, $SIG{__DIE__});
+	eval {
+	    require Math::Vector::Real::XS;
+	    $Math::Vector::Real::XS::VERSION;
+	}
+    };
 
-eval { require Math::Vector::Real::XS } unless $dont_use_XS;
+    if (defined $xs_version and $xs_version < 0.06) {
+	croak "Old and buggy version of Math::Vector::Real::XS detected, update it!";
+    }
+}
+
 
 our %op = (add => '+',
 	   neg => 'neg',
