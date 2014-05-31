@@ -2,6 +2,12 @@
 
 use Test::More tests => 29;
 
+BEGIN {
+    if (-f 'dont_use_xs' or -f 't/dont_use_xs') {
+	$Math::Vector::Real::dont_use_XS = 1;
+	diag "XS backend dissabled";
+    }
+}
 use Math::Vector::Real;
 
 my $PI = 3.14159_26535_89793_23846_26433_83279;
