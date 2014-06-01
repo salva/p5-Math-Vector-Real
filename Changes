@@ -1,5 +1,8 @@
 Revision history for Perl extension Math::Vector::Real.
 
+0.14  Jun 1, 2014
+        - add Math::Vector::Real::Test module
+
 0.13  May 31, 2014
         - check version of XS backend and abort when it is an old
           buggy one
