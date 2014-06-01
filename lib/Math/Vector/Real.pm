@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.13';
+our $VERSION = '0.14';
 
 use strict;
 use warnings;
@@ -20,7 +20,7 @@ unless ($dont_use_XS) {
 	}
     };
 
-    if (defined $xs_version and $xs_version < 0.06) {
+    if (defined $xs_version and $xs_version < 0.07) {
 	croak "Old and buggy version of Math::Vector::Real::XS detected, update it!";
     }
 }
