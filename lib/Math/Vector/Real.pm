@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.14';
+our $VERSION = '0.15';
 
 use strict;
 use warnings;
@@ -456,6 +456,26 @@ sub max_dist2_to_box {
     return $d2;
 }
 
+sub min_dist2_between_boxes {
+    my ($class, $a0, $a1, $b0, $b1) = @_;
+    my ($c0, $c1) = $class->box($a0, $a1);
+    my ($d0, $d1) = $class->box($b0, $b1);
+    my $d2 = 0;
+    for (0..$#$c0) {
+        my $e0 = $d0->[$_] - $c1->[$_];
+        if ($e0 >= 0) {
+            $d2 += $e0 * $e0;
+        }
+        else {
+            my $e1 = $c0->[$_] - $d1->[$_];
+            if ($e1 > 0) {
+                $d2 += $e1 * $e1;
+            }
+        }
+    }
+    $d2;
+}
+
 sub max_dist2_between_boxes {
     my ($class, $a0, $a1, $b0, $b1) = @_;
     my ($c0, $c1) = $class->box($a0, $a1);
@@ -805,6 +825,12 @@ Calculates the square of the maximum distance between the vector C<$v>
 and the minimal axis-aligned box containing all the vectors C<($w0,
 $w1, ...)>.
 
+=item $d2 = Math::Vector::Real->min_dist2_between_boxes($a0, $a1, $b0, $b1)
+
+Returns the square of the minimum distance between any two points
+belonging to the boxes defined by C<($a0, $a1)> and
+C<($b0, $b1)> respectively.
+
 =item $d2 = Math::Vector::Real->max_dist2_between_boxes($a0, $a1, $b0, $b1)
 
 Returns the square of the maximum distance between any two points
@@ -941,7 +967,7 @@ wishlist: L<http://amzn.com/w/1WU1P6IR5QZ42>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2012, 2014 by Salvador FandiE<ntilde>o
+Copyright (C) 2009-2012, 2014, 2015 by Salvador FandiE<ntilde>o
 (sfandino@yahoo.com)
 
 This library is free software; you can redistribute it and/or modify

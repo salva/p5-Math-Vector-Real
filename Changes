@@ -1,5 +1,8 @@
 Revision history for Perl extension Math::Vector::Real.
 
+0.15  Mar 10, 2015
+        - add min_dist2_between_boxes method
+
 0.14  Jun 1, 2014
         - add Math::Vector::Real::Test module
 
