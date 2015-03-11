@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.15';
+our $VERSION = '0.16';
 
 use strict;
 use warnings;
@@ -456,7 +456,7 @@ sub max_dist2_to_box {
     return $d2;
 }
 
-sub min_dist2_between_boxes {
+sub dist2_between_boxes {
     my ($class, $a0, $a1, $b0, $b1) = @_;
     my ($c0, $c1) = $class->box($a0, $a1);
     my ($d0, $d1) = $class->box($b0, $b1);
@@ -475,6 +475,8 @@ sub min_dist2_between_boxes {
     }
     $d2;
 }
+
+*min_dist2_between_boxes = \&dist2_between_boxes;
 
 sub max_dist2_between_boxes {
     my ($class, $a0, $a1, $b0, $b1) = @_;
@@ -825,7 +827,7 @@ Calculates the square of the maximum distance between the vector C<$v>
 and the minimal axis-aligned box containing all the vectors C<($w0,
 $w1, ...)>.
 
-=item $d2 = Math::Vector::Real->min_dist2_between_boxes($a0, $a1, $b0, $b1)
+=item $d2 = Math::Vector::Real->dist2_between_boxes($a0, $a1, $b0, $b1)
 
 Returns the square of the minimum distance between any two points
 belonging to the boxes defined by C<($a0, $a1)> and
