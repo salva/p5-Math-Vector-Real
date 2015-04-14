@@ -1,5 +1,8 @@
 Revision history for Perl extension Math::Vector::Real.
 
+0.17  Apr 14, 2015
+        - add methods chebyshev_norm and chebyshev_dist
+
 0.16  Mar 11, 2015
         - method min_dist2_between_boxes renamed to dist2_between_boxes
 

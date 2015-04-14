@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.16';
+our $VERSION = '0.17';
 
 use strict;
 use warnings;
@@ -224,15 +224,11 @@ sub abs {
     sqrt $acu;
 }
 
-*norm = \&abs;
-
 sub abs2 {
     my $acu = 0;
     $acu += $_ * $_ for @{$_[0]};
     $acu;
 }
-
-*norm2 = \&abs2;
 
 sub dist {
     &_check_dim;
@@ -256,6 +252,25 @@ sub dist2 {
     $d2;
 }
 
+sub max_component {
+    my $max = 0;
+    for (@{shift()}) {
+	my $abs = CORE::abs($_);
+	$abs > $max and $max = $abs;
+    }
+    $max
+}
+
+sub min_component {
+    my $self = shift; 
+    my $min = CORE::abs($self->[0]);
+    for (@$self) {
+	my $abs = CORE::abs($_);
+	$abs < $min and $min = $abs;
+    }
+    $min
+}
+
 sub manhattan_norm {
     my $n = 0;
     $n += CORE::abs($_) for @{$_[0]};
@@ -268,6 +283,17 @@ sub manhattan_dist {
     my $d = 0;
     $d += CORE::abs($v0->[$_] - $v1->[$_]) for 0..$#$v0;
     return $d;
+}
+
+sub chebyshev_dist {
+    &_check_dim;
+    my ($v0, $v1) = @_;
+    my $max = 0;
+    for (0..$#$v0) {
+        my $d = CORE::abs($v0->[$_] - $v1->[$_]);
+        $max = $d if $d > $max;
+    }
+    $max;
 }
 
 sub _upgrade {
@@ -318,28 +344,6 @@ sub wrap {
 		  my $c = $v->[$_];
 		  $c - $s * POSIX::floor($c/$s) } (0..$#$self)];
 }
-
-sub max_component {
-    my $max = 0;
-    for (@{shift()}) {
-	my $abs = CORE::abs($_);
-	$abs > $max and $max = $abs;
-    }
-    $max
-}
-
-sub min_component {
-    my $self = shift; 
-    my $min = CORE::abs($self->[0]);
-    for (@$self) {
-	my $abs = CORE::abs($_);
-	$abs < $min and $min = $abs;
-    }
-    $min
-}
-
-*max = \&max_component;
-*min = \&min_component;
 
 sub first_orthant_reflection {
     my $self = shift;
@@ -627,6 +631,13 @@ sub select_in_ball_ref2bitmap {
     return $bm;
 }
 
+# This is run *after* Math::Vector::Real::XS is loaded!
+*norm = \&abs;
+*norm2 = \&abs2;
+*max = \&max_component;
+*min = \&min_component;
+*chebyshev_norm = \&max_component;
+
 1;
 __END__
 
@@ -790,6 +801,23 @@ Returns the distance between the two vectors.
 =item $d = $v->dist2($u)
 
 Returns the distance between the two vectors squared.
+
+=item $d = $v->manhattan_norm
+
+Returns the norm of the vector calculated using the Manhattan metric.
+
+=item $d = $v->manhattan_dist($u)
+
+Returns the distance between the two vectors using the Manhattan metric.
+
+=item $d = $v->chebyshev_norm
+
+Returns the norm of the vector calculated using the Chebyshev metric
+(note that this method is an alias for C<max_component>.
+
+=item $d = $v->chebyshev_dist
+
+Returns the distance between the two vectors using the Chebyshev metric.
 
 =item ($bottom, $top) = Math::Vector::Real->box($v0, $v1, $v2, ...)
 
