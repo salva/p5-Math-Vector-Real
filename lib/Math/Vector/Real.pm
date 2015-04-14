@@ -412,6 +412,42 @@ sub dist2_to_box {
     $d2;
 }
 
+sub chebyshev_dist_to_box {
+    @_ > 1 or croak 'Usage $v->chebyshev_dist_to_box($w0, ...)';
+    my $p = shift;
+    my $d = 0;
+    my ($min, $max) = Math::Vector::Real->box(@_);
+    for (0..$#p) {
+        if ($p->[$_] < $min->[$_]) {
+            my $delta = CORE::abs($p->[$_] - $min->[$_]);
+            $d = $delta if $delta > $d;
+        }
+        elsif ($p->[$_] > $max->[$_]) {
+            my $delta = CORE::abs($p->[$_] - $min->[$_]);
+            $d = $delta if $delta > $d;
+        }
+    }
+    $d;
+}
+
+sub chebyshev_cut_box {
+    @_ > 2 or croak 'Usage $v->chebyshev_cut_box($cd, $w0, ...)';
+    my $v = shift;
+    my $cd = shift;
+    my ($min, $max) = Math::Vector::Real->box(@_);
+    for (0..$#p) {
+        my $x = $v->[$_];
+        my $a_min = $x - $cd;
+        my $a_max = $x + $cd;
+        my $b_min = $min->[$_];
+        my $b_max = $max->[$_];
+        return if $b_min > $a_max or $b_max < $a_min;
+        $min->[$_] = $a_min if $b_min < $a_min;
+        $max->[$_] = $a_max if $b_min > $a_max;
+    }
+    ($min, $max);
+}
+
 sub nearest_in_box_border {
     # TODO: this method can be optimized
     my $p = shift->clone;
@@ -855,6 +891,12 @@ Calculates the square of the maximum distance between the vector C<$v>
 and the minimal axis-aligned box containing all the vectors C<($w0,
 $w1, ...)>.
 
+=item $d = $v->chebyshev_dist_to_box($w0, $w1, ...)
+
+Calculates the minimal distance between the vector C<$v> and the
+minimal axis-aligned box containing all the vectors C<($w0, $w1, ...)>
+using the Chebyshev metric.
+
 =item $d2 = Math::Vector::Real->dist2_between_boxes($a0, $a1, $b0, $b1)
 
 Returns the square of the minimum distance between any two points
@@ -967,8 +1009,8 @@ instabilities if the algorithm allows it.
 =head2 Math::Vector::Real::XS
 
 The module L<Math::Vector::Real::XS> reimplements most of the methods
-available from this module in XS. When it is installed,
-C<Math::Vector::Real> when automatically load and use it.
+available from this module in XS. C<Math::Vector::Real> automatically
+loads and uses it when it is available.
 
 =head1 SEE ALSO
 
