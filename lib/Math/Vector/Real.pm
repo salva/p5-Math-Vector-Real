@@ -417,7 +417,7 @@ sub chebyshev_dist_to_box {
     my $p = shift;
     my $d = 0;
     my ($min, $max) = Math::Vector::Real->box(@_);
-    for (0..$#p) {
+    for (0..$#$p) {
         if ($p->[$_] < $min->[$_]) {
             my $delta = CORE::abs($p->[$_] - $min->[$_]);
             $d = $delta if $delta > $d;
@@ -432,13 +432,13 @@ sub chebyshev_dist_to_box {
 
 sub chebyshev_cut_box {
     @_ > 2 or croak 'Usage $v->chebyshev_cut_box($cd, $w0, ...)';
-    my $v = shift;
+    my $p = shift;
     my $cd = shift;
     my ($min, $max) = Math::Vector::Real->box(@_);
-    for (0..$#p) {
-        my $x = $v->[$_];
-        my $a_min = $x - $cd;
-        my $a_max = $x + $cd;
+    for (0..$#$p) {
+        my $a = $p->[$_];
+        my $a_min = $a - $cd;
+        my $a_max = $a + $cd;
         my $b_min = $min->[$_];
         my $b_max = $max->[$_];
         return if $b_min > $a_max or $b_max < $a_min;
