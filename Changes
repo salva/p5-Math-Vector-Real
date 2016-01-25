@@ -1,6 +1,7 @@
 Revision history for Perl extension Math::Vector::Real.
 
 0.18
+        - require perl 5.10
         - add methods chebyshev_dist_to_box and chebyshev_cut_box
 
 0.17  Apr 14, 2015

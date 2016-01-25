@@ -1039,7 +1039,7 @@ wishlist: L<http://amzn.com/w/1WU1P6IR5QZ42>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2012, 2014, 2015 by Salvador FandiE<ntilde>o
+Copyright (C) 2009-2012, 2014-2016 by Salvador FandiE<ntilde>o
 (sfandino@yahoo.com)
 
 This library is free software; you can redistribute it and/or modify
