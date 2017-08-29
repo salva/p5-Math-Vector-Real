@@ -667,6 +667,65 @@ sub select_in_ball_ref2bitmap {
     return $bm;
 }
 
+sub dist2_to_segment {
+    my ($p, $a, $b) = @_;
+    my $ab = $a - $b;
+    my $ap = $a - $p;
+    my $ap_ab = $ap * $ab;
+    return norm2($ap) if $ap_ab <= 0;
+    my $x = $ap * $ab / ($ab * $ab);
+    return dist2($ap, $ab) if $x >= 1;
+    return dist2($ap, $x * $ab);
+}
+
+sub dist_to_segment { sqrt(&dist_to_segment) }
+
+sub dist2_between_segments {
+    my ($class, $a, $b, $c, $d) = @_;
+
+    my $ab = $a - $b;
+    my $cd = $c - $d;
+    my $bd = $b - $d;
+
+    my $ab_ab = $ab * $ab;
+    my $ab_cd = $ab * $cd;
+    my $cd_cd = $cd * $cd;
+
+    if (CORE::abs(1.0 - ($ab_cd * $ab_cd) / ($ab_ab * $cd_cd)) < 1e-10) {
+        # lines are parallel, we consider the distance between one
+        # segment to the vertices of the other one and viceverse and
+        # return the minimum.
+        my $min_d2 = dist2_to_segment($a, $c, $d);
+        my $d2 = dist2_to_segment($b, $c, $d);
+        $d2 = dist2_to_segment($c, $a, $b);
+        $min_d2 = $d2 if $d2 < $min_d2;
+        $d2 = dist2_to_segment($d, $a, $b);
+        $min_d2 = $d2 if $d2 < $min_d2;
+        return $min_d2;
+    }
+
+    my $ab_bd = $ab * $bd;
+    my $bd_cd = $bd * $cd;
+
+    my $D01 = $ab_cd * $ab_cd - $ab_ab * $cd_cd;
+    my $D21 = $cd_cd * $ab_bd - $bd_cd * $ab_cd;
+    my $x = $D21 / $D01;
+    return dist2_to_segment($b, $c, $d) if $x < 0;
+    return dist2_to_segment($a, $c, $d) if $x > 1;
+
+    my $D02 = $ab_cd * $ab_bd - $bd_cd * $ab_ab;
+    my $y = $D02 / $D01;
+    return dist2_to_segment($d, $a, $b) if $y < 0;
+    return dist2_to_segment($c, $a, $b) if $y > 1;
+
+    my $p = $b + $ab * $x;
+    my $q = $d + $cd * $y;
+
+    return $p->dist2($q);
+}
+
+sub dist_between_segments { sqrt(&dist2_between_segments) }
+
 # This is run *after* Math::Vector::Real::XS is loaded!
 *norm = \&abs;
 *norm2 = \&abs2;
