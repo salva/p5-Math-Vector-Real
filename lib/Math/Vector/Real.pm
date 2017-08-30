@@ -1,6 +1,6 @@
 package Math::Vector::Real;
 
-our $VERSION = '0.17';
+our $VERSION = '0.18';
 
 use strict;
 use warnings;
@@ -687,41 +687,44 @@ sub dist2_between_segments {
     my $cd = $c - $d;
     my $bd = $b - $d;
 
-    my $ab_ab = $ab * $ab;
-    my $ab_cd = $ab * $cd;
-    my $cd_cd = $cd * $cd;
+    if (@$a > 2) {
+        my $ab_ab = $ab * $ab;
+        my $ab_cd = $ab * $cd;
+        my $cd_cd = $cd * $cd;
 
-    if (CORE::abs(1.0 - ($ab_cd * $ab_cd) / ($ab_ab * $cd_cd)) < 1e-10) {
-        # lines are parallel, we consider the distance between one
-        # segment to the vertices of the other one and viceverse and
-        # return the minimum.
-        my $min_d2 = dist2_to_segment($a, $c, $d);
-        my $d2 = dist2_to_segment($b, $c, $d);
-        $d2 = dist2_to_segment($c, $a, $b);
-        $min_d2 = $d2 if $d2 < $min_d2;
-        $d2 = dist2_to_segment($d, $a, $b);
-        $min_d2 = $d2 if $d2 < $min_d2;
-        return $min_d2;
+        if (CORE::abs(1.0 - ($ab_cd * $ab_cd) / ($ab_ab * $cd_cd)) > 1e-10) {
+            # This method works for non-parallel segments
+            my $ab_bd = $ab * $bd;
+            my $bd_cd = $bd * $cd;
+
+            my $D01 = $ab_cd * $ab_cd - $ab_ab * $cd_cd;
+            my $D21 = $cd_cd * $ab_bd - $bd_cd * $ab_cd;
+            my $x = $D21 / $D01;
+            return dist2_to_segment($b, $c, $d) if $x < 0;
+            return dist2_to_segment($a, $c, $d) if $x > 1;
+
+            my $D02 = $ab_cd * $ab_bd - $bd_cd * $ab_ab;
+            my $y = $D02 / $D01;
+            return dist2_to_segment($d, $a, $b) if $y < 0;
+            return dist2_to_segment($c, $a, $b) if $y > 1;
+
+            my $p = $b + $ab * $x;
+            my $q = $d + $cd * $y;
+
+            return $p->dist2($q);
+        }
     }
 
-    my $ab_bd = $ab * $bd;
-    my $bd_cd = $bd * $cd;
-
-    my $D01 = $ab_cd * $ab_cd - $ab_ab * $cd_cd;
-    my $D21 = $cd_cd * $ab_bd - $bd_cd * $ab_cd;
-    my $x = $D21 / $D01;
-    return dist2_to_segment($b, $c, $d) if $x < 0;
-    return dist2_to_segment($a, $c, $d) if $x > 1;
-
-    my $D02 = $ab_cd * $ab_bd - $bd_cd * $ab_ab;
-    my $y = $D02 / $D01;
-    return dist2_to_segment($d, $a, $b) if $y < 0;
-    return dist2_to_segment($c, $a, $b) if $y > 1;
-
-    my $p = $b + $ab * $x;
-    my $q = $d + $cd * $y;
-
-    return $p->dist2($q);
+    # We are in 2D or lines are parallel, we consider the distance
+    # between one segment to the vertices of the other one and
+    # viceverse and return the minimum.
+    my $min_d2 = dist2_to_segment($a, $c, $d);
+    my $d2 = dist2_to_segment($b, $c, $d);
+    $d2 = dist2_to_segment($c, $a, $b);
+    $min_d2 = $d2 if $d2 < $min_d2;
+    $d2 = dist2_to_segment($d, $a, $b);
+    $min_d2 = $d2 if $d2 < $min_d2;
+    return $min_d2;
 }
 
 sub dist_between_segments { sqrt(&dist2_between_segments) }
@@ -968,6 +971,20 @@ Returns the square of the maximum distance between any two points
 belonging respectively to the boxes defined by C<($a0, $a1)> and
 C<($b0, $b1)>.
 
+=item $d2 = $v->dist2_to_segment($a0, $a1)
+
+Returns the square of the minimum distance between the given point
+C<$v> and the line segment defined by the vertices C<$a0> and C<$a1>.
+
+=item $d2 = Math::Vector::Real->dist2_between_segments($a0, $a1, $b0, $b1)
+
+Returns the square of the distance between the line segment defined by
+the vertices C<$a0> and C<$a1> and the one defined by the vertices
+C<$b0> and C<$b1>.
+
+Degenerated cases where the lenght of any segment is (too close to) 0
+are not supported.
+
 =item $v->set($u)
 
 Equivalent to C<$v = $u> but without allocating a new object.
@@ -1098,7 +1115,7 @@ wishlist: L<http://amzn.com/w/1WU1P6IR5QZ42>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009-2012, 2014-2016 by Salvador FandiE<ntilde>o
+Copyright (C) 2009-2012, 2014-2017 by Salvador FandiE<ntilde>o
 (sfandino@yahoo.com)
 
 This library is free software; you can redistribute it and/or modify
