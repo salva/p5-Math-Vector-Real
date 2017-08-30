@@ -982,7 +982,7 @@ Returns the square of the distance between the line segment defined by
 the vertices C<$a0> and C<$a1> and the one defined by the vertices
 C<$b0> and C<$b1>.
 
-Degenerated cases where the lenght of any segment is (too close to) 0
+Degenerated cases where the length of any segment is (too close to) 0
 are not supported.
 
 =item $v->set($u)
