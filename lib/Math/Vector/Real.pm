@@ -913,7 +913,7 @@ Returns the distance between the two vectors using the Manhattan metric.
 Returns the norm of the vector calculated using the Chebyshev metric
 (note that this method is an alias for C<max_component>.
 
-=item $d = $v->chebyshev_dist
+=item $d = $v->chebyshev_dist($u)
 
 Returns the distance between the two vectors using the Chebyshev metric.
 
