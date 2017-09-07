@@ -667,15 +667,40 @@ sub select_in_ball_ref2bitmap {
     return $bm;
 }
 
+sub dist2_to_line {
+    my ($p, $a, $v) = @_;
+    my $nv2 = abs2($v);
+    my $ap = $p - $a;
+    my $ap2 = abs2($ap);
+    my $dot = $ap * $v;
+    $ap2 - ($dot * $dot / $nv2);
+}
+
+sub dist2_to_line_ab {
+    my ($p, $a, $b) = @_;
+    dist2_to_line($p, $a, $b - $a);
+}
+
+sub dist2_to_hyperplane {
+    my $p = shift;
+    my $a = shift;
+    my $ap = $p - $a;
+    for my $v (@_) {
+        my $nv2 = abs2($v);
+        $ap -= ($ap * $v) / $nv2 * $v;
+    }
+    abs2($ap);
+}
+
 sub dist2_to_segment {
     my ($p, $a, $b) = @_;
-    my $ab = $a - $b;
-    my $ap = $a - $p;
-    my $ap_ab = $ap * $ab;
-    return norm2($ap) if $ap_ab <= 0;
-    my $x = $ap * $ab / ($ab * $ab);
-    return dist2($ap, $ab) if $x >= 1;
-    return dist2($ap, $x * $ab);
+    my $ab = $b - $a;
+    my $ap = $p - $a;
+    my $ab_ap = $ab * $ap;
+    return abs2($ap) if $ab_ap <= 0;
+    my $ab_n2 = abs2($ab);
+    return dist2($p, $b) if $ab_ap >= $ab_n2;
+    abs2($ap) - $ab_ap * $ab_ap / $ab_n2;
 }
 
 sub dist_to_segment { sqrt(&dist_to_segment) }
@@ -971,10 +996,29 @@ Returns the square of the maximum distance between any two points
 belonging respectively to the boxes defined by C<($a0, $a1)> and
 C<($b0, $b1)>.
 
-=item $d2 = $v->dist2_to_segment($a0, $a1)
+=item $d2 = $p->dist2_to_line($a, $v)
 
 Returns the square of the minimum distance between the given point
-C<$v> and the line segment defined by the vertices C<$a0> and C<$a1>.
+C<$p> and the line containing point C<$a> and direction C<$v>.
+
+=item $d2 = $p->dist2_to_line_ab($a, $b)
+
+Returns the square of the minimum distance between the given point
+C<$p> and the line passing by points C<$a> and C<$b>.
+
+=item $d2 = $p->dist2_to_hyperplane($a, @v)
+
+Returns the square of the minimum distance between the given point
+point C<$p> and the hyperplane defined by the point C<$a> and the set
+of B<orthogonal> vectors C<@v>.
+
+Note that the number of vectors contained in @v can range from 0 to
+the dimension of the vectors.
+
+=item $d2 = $p->dist2_to_segment($a0, $a1)
+
+Returns the square of the minimum distance between the given point
+C<$p> and the line segment defined by the vertices C<$a0> and C<$a1>.
 
 =item $d2 = Math::Vector::Real->dist2_between_segments($a0, $a1, $b0, $b1)
 
